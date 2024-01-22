@@ -33,7 +33,7 @@ Welcome() {
                dysssym
              dysssym
            dysssym
-         dysssym')" "" "Welcome to jade-tui" "Ready to make your Crystal installation... ready?" "$(gum style --foreground "#2B2B2B" "jade-tui version: $version")")" && CONTINUE=true
+         dysssym')" "" "Welcome to aegis-tui" "Ready to make your Athena installation... ready?" "$(gum style --foreground "#2B2B2B" "jade-tui version: $version")")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         echo "Exiting. Have a good day!"
         exit
@@ -49,7 +49,7 @@ Keymap() {
 }
 
 Locale() {
-    locale=$(cat /usr/share/jade-tui/locales | gum filter --placeholder "select a locale")
+    locale=$(cat /usr/share/aegis-tui/locales | gum filter --placeholder "select a locale")
 }
 
 Username() {
@@ -116,7 +116,7 @@ Shell() {
     gum style --border normal --margin "1" --padding "1 2" "Select a default shell"
     shell=$(gum choose --limit 1 fish zsh bash)
 
-    # TODO: remove when jade works all the time
+    # TODO: remove when aegis works all the time
     if [[ "$shell" == "fish" ]]; then
         fish_pkg="\"fish\""
     else
@@ -175,7 +175,7 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
         disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         clear
-        gum style --border normal --margin "1" --padding "1 2" "Password: crystal"
+        gum style --border normal --margin "1" --padding "1 2" "Password: athena"
         sudo cfdisk $disk_dev
 
         # 4. Ask what partition is what
@@ -302,7 +302,7 @@ Install() {
         echo "Exiting. Have a good day!"
         exit
     else
-        sudo jade config /tmp/config.json
+        sudo athena-aegis config /tmp/config.json
     fi
 }
 
