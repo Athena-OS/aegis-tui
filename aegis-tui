@@ -33,7 +33,7 @@ Welcome() {
                dysssym
              dysssym
            dysssym
-         dysssym')" "" "Welcome to aegis-tui" "Ready to make your Athena installation... ready?" "$(gum style --foreground "#2B2B2B" "jade-tui version: $version")")" && CONTINUE=true
+         dysssym')" "" "Welcome to aegis-tui" "Ready to make your Athena installation... ready?" "$(gum style --foreground "#2B2B2B" "aegis-tui version: $version")")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         echo "Exiting. Have a good day!"
         exit
