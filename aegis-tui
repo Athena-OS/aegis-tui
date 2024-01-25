@@ -1,4 +1,4 @@
-#!/nix/store/7dpxg7ki7g8ynkdwcqf493p2x8divb4i-bash-5.2-p15/bin/bash
+#!/bin/bash
 
 version="2.0.0 beta"
 
@@ -14,7 +14,7 @@ export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
 export FOREGROUND="#ffffff"
 
 Welcome() {
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum confirm "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin '1' --padding '1 2' "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --foreground "$main_color" '                        mysssym
+    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' "$(gum style --foreground "$main_color" '                        mysssym
                       mysssym
                     mysssym
                   mysssym
@@ -33,7 +33,7 @@ Welcome() {
                dysssym
              dysssym
            dysssym
-         dysssym')" "" "Welcome to aegis-tui" "Ready to make your Athena installation... ready?" "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --foreground "#2B2B2B" "aegis-tui version: $version")")" && CONTINUE=true
+         dysssym')" "" "Welcome to aegis-tui" "Ready to make your Athena installation... ready?" "$(gum style --foreground "#2B2B2B" "aegis-tui version: $version")")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         echo "Exiting. Have a good day!"
         exit
@@ -41,23 +41,23 @@ Welcome() {
 }
 
 Timezone() {
-    timezone=$(timedatectl list-timezones | /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum filter --placeholder "select a timezone")
+    timezone=$(timedatectl list-timezones | gum filter --placeholder "select a timezone")
 }
 
 Keymap() {
-    keymap=$(localectl list-x11-keymap-layouts | /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum filter --placeholder "select a keymap")
+    keymap=$(localectl list-x11-keymap-layouts | gum filter --placeholder "select a keymap")
 }
 
 Locale() {
-    locale=$(cat /nix/store/2l6hkcpkl6fsasqm5qmph8n53aa88fbq-aegis-tui-unstable-2024-01-25/share/aegis-tui/locales | /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum filter --placeholder "select a locale")
+    locale=$(cat /usr/share/aegis-tui/locales | gum filter --placeholder "select a locale")
     # Using parameter expansion to remove everything after the space
     locale="${locale%% *}"
 }
 
 Username() {
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Please enter your username"
-    username=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum input --placeholder "Please enter your username")
+    gum style --border normal --margin "1" --padding "1 2" "Please enter your username"
+    username=$(gum input --placeholder "Please enter your username")
 }
 
 Password() {
@@ -66,27 +66,27 @@ Password() {
     while [[ "$matches" == "false" ]]; do
         clear
         if [[ "$passwrong" == "true" ]]; then
-            /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Passwords did not match, please type the password again"
+            gum style --border normal --margin "1" --padding "1 2" "Passwords did not match, please type the password again"
         else
-            /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Now enter your password"
+            gum style --border normal --margin "1" --padding "1 2" "Now enter your password"
         fi
-        password=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum input --password --placeholder "Please enter a password")
+        password=$(gum input --password --placeholder "Please enter a password")
         clear
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Verify your password"
-        password_verif=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum input --password --placeholder "Type your password again")
+        gum style --border normal --margin "1" --padding "1 2" "Verify your password"
+        password_verif=$(gum input --password --placeholder "Type your password again")
         if [[ "$password" == "$password_verif" ]]; then
             matches="true"
         else
             passwrong="true"
         fi
     done
-    hashed_password=$(/nix/store/h3ibirdc730w2w6dmnxhz8s9x1ga0mma-openssl-3.0.12-bin/bin/openssl passwd -6 $password)
+    hashed_password=$(openssl passwd -6 $password)
 }
 
 RootPassword() {
     clear
     different_root_password=true
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum confirm "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin '1' --padding '1 2' 'Use same password for root?')" && different_root_password=false
+    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' 'Use same password for root?')" && different_root_password=false
     if [[ $different_root_password != "true" ]]; then
         root_password=$password # set root password same as user password
     else
@@ -95,14 +95,14 @@ RootPassword() {
         while [[ "$root_matches" == "false" ]]; do
             clear
             if [[ "$root_passwrong" == "true" ]]; then
-                /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Passwords did not match, please type the root password again"
+                gum style --border normal --margin "1" --padding "1 2" "Passwords did not match, please type the root password again"
             else
-                /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Now enter your root password"
+                gum style --border normal --margin "1" --padding "1 2" "Now enter your root password"
             fi
-            root_password=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum input --password --placeholder "Please enter a root password")
+            root_password=$(gum input --password --placeholder "Please enter a root password")
             clear
-            /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Verify your root password"
-            root_password_verif=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum input --password --placeholder "Type your root password again")
+            gum style --border normal --margin "1" --padding "1 2" "Verify your root password"
+            root_password_verif=$(gum input --password --placeholder "Type your root password again")
             if [[ "$root_password" == "$root_password_verif" ]]; then
                 root_matches="true"
             else
@@ -110,25 +110,25 @@ RootPassword() {
             fi
         done
     fi
-    hashed_root_password=$(/nix/store/h3ibirdc730w2w6dmnxhz8s9x1ga0mma-openssl-3.0.12-bin/bin/openssl passwd -6 ${root_password})
+    hashed_root_password=$(openssl passwd -6 ${root_password})
 }
 
 Shell() {
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Select a default shell"
-    shell=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1 fish zsh bash)
+    gum style --border normal --margin "1" --padding "1 2" "Select a default shell"
+    shell=$(gum choose --limit 1 fish zsh bash)
 }
 
 Hostname() {
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Please enter a hostname"
-    hostname=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum input --placeholder "Please enter a hostname")
+    gum style --border normal --margin "1" --padding "1 2" "Please enter a hostname"
+    hostname=$(gum input --placeholder "Please enter a hostname")
 }
 
 AutoDisk() {
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
-    disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1)
+    gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
+    disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
     disk=$(echo $disk_dev | awk '{ print substr ($0, 6 ) }')
 }
 
@@ -149,43 +149,43 @@ ManualDisk() {
     # 1. Check if UEFI or BIOS
     if [[ $is_uefi == "true" || $testing == "true" ]]; then
         # 2. Show what the user has to create like in arch wiki
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --foreground $warning_color "Note: swap partition needs to be enabled after install"
+        gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
+        gum style --border normal --foreground $warning_color "Note: swap partition needs to be enabled after install"
         echo ""
         echo ""
 
-        EFI_PART=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal "EFI system partition")
-        EFI_SIZE=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal "At least 300 MiB")
-        SWAP_PART=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal "Linux swap")
-        SWAP_SIZE=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal "More than 512 MiB")
-        ROOT_PART=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal "Linux x86-64 root")
-        ROOT_SIZE=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal "Remainder of the device")
-        EFI_ROW=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum join "$EFI_PART" "$EFI_SIZE")
-        SWAP_ROW=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum join "$SWAP_PART" "$SWAP_SIZE")
-        ROOT_ROW=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum join "$ROOT_PART" "$ROOT_SIZE")
+        EFI_PART=$(gum style --border normal "EFI system partition")
+        EFI_SIZE=$(gum style --border normal "At least 300 MiB")
+        SWAP_PART=$(gum style --border normal "Linux swap")
+        SWAP_SIZE=$(gum style --border normal "More than 512 MiB")
+        ROOT_PART=$(gum style --border normal "Linux x86-64 root")
+        ROOT_SIZE=$(gum style --border normal "Remainder of the device")
+        EFI_ROW=$(gum join "$EFI_PART" "$EFI_SIZE")
+        SWAP_ROW=$(gum join "$SWAP_PART" "$SWAP_SIZE")
+        ROOT_ROW=$(gum join "$ROOT_PART" "$ROOT_SIZE")
 
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum join --vertical "$EFI_ROW" "$SWAP_ROW" "$ROOT_ROW"
+        gum join --vertical "$EFI_ROW" "$SWAP_ROW" "$ROOT_ROW"
 
         # 3. Open cfdisk
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
-        disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1)
+        gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
+        disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         clear
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Password: athena"
+        gum style --border normal --margin "1" --padding "1 2" "Password: athena"
         sudo cfdisk $disk_dev
 
         # 4. Ask what partition is what
         clear
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Select EFI partition"
-        efi_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1)
+        gum style --border normal --margin "1" --padding "1 2" "Select EFI partition"
+        efi_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         clear
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Select EFI partition mountpoint"
-        efi_part_mount=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
+        gum style --border normal --margin "1" --padding "1 2" "Select EFI partition mountpoint"
+        efi_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
         clear
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Select root partition"
-        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1)
+        gum style --border normal --margin "1" --padding "1 2" "Select root partition"
+        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         clear
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
-        root_part_mount=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
+        gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
+        root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
 
         # TODO: remove junk from efi_part, root_part
     else
@@ -196,17 +196,17 @@ ManualDisk() {
 Swap() {
     clear
     create_swap=false
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum confirm "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin '1' --padding '1 2' 'Create a swap partition?')" && create_swap=true
+    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' 'Create a swap partition?')" && create_swap=true
     if [[ $create_swap == "true" ]]; then
-        /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Select a swap partition size"
-        swap_size=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1 1GiB 2GiB 4GiB 8GiB)
+        gum style --border normal --margin "1" --padding "1 2" "Select a swap partition size"
+        swap_size=$(gum choose --limit 1 1GiB 2GiB 4GiB 8GiB)
     fi
 }
     
 Partitioning() {
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
-    partmode=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1 auto manual)
+    gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
+    partmode=$(gum choose --limit 1 auto manual)
 
     if [[ "$partmode" == "auto" ]]; then
         Swap
@@ -218,14 +218,14 @@ Partitioning() {
 
 Desktop() {
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
-    desktop=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1 gnome kde budgie mate cinnamon lxqt sway i3gaps herbstluftwm awesome bspwm)
+    gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
+    desktop=$(gum choose --limit 1 gnome kde budgie mate cinnamon lxqt sway i3gaps herbstluftwm awesome bspwm)
 }
 
 Misc() {
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Some miscellaneous settings" "Use space to enable/disable"
-    misc_settings=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 4 "Enable ipv6" "Enable timeshift" "Enable zramd" "Enable flatpak")
+    gum style --border normal --margin "1" --padding "1 2" "Some miscellaneous settings" "Use space to enable/disable"
+    misc_settings=$(gum choose --limit 4 "Enable ipv6" "Enable timeshift" "Enable zramd" "Enable flatpak")
     enable_ipv6="false"
     enable_timeshift="false"
     enable_zramd="false"
@@ -246,31 +246,31 @@ Misc() {
 
 InstallParams() {
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Please enter the number of cores assigned to the installer (0: all)"
+    gum style --border normal --margin "1" --padding "1 2" "Please enter the number of cores assigned to the installer (0: all)"
     while ! [[ "$cores" =~ ^[0-9]+$ ]]; do
-        cores=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum input --placeholder "Please enter a core number")
+        cores=$(gum input --placeholder "Please enter a core number")
         [ -z "$cores" ] && echo "Please enter a value."
         [ -n "$cores" ] && ! [[ "$cores" =~ ^[0-9]+$ ]] && echo "Please enter a valid number."
     done
 
     clear
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin "1" --padding "1 2" "Please enter the number of maximum jobs assigned to the installer"
+    gum style --border normal --margin "1" --padding "1 2" "Please enter the number of maximum jobs assigned to the installer"
     while ! [[ "$jobs" =~ ^[0-9]+$ ]]; do
-        jobs=$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum input --placeholder "Please enter a jobs number")
+        jobs=$(gum input --placeholder "Please enter a jobs number")
         [ -z "$jobs" ] && echo "Please enter a value."
         [ -n "$jobs" ] && ! [[ "$jobs" =~ ^[0-9]+$ ]] && echo "Please enter a valid number."
     done
 
     clear
     keep_going=false
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum confirm "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin '1' --padding '1 2' 'Must the installer go on even if a build fails?')" && keep_going=true
+    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' 'Must the installer go on even if a build fails?')" && keep_going=true
 }
 
 
 Summary() {
     clear
     CONTINUE=false
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum confirm "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "keymap: $keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk" "desktop: $desktop" "ipv6: $enable_ipv6" "timeshift: $enable_timeshift" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
+    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "keymap: $keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk" "desktop: $desktop" "ipv6: $enable_ipv6" "timeshift: $enable_timeshift" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
@@ -332,14 +332,14 @@ Summary() {
 }
 
 Change() {
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin '1' --padding '1 2' "What do you want to change?"
-    $(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum choose --limit 1 Timezone Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Misc)
+    gum style --border normal --margin '1' --padding '1 2' "What do you want to change?"
+    $(gum choose --limit 1 Timezone Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Misc)
     Summary
 }
 
 Install() {
     CONTINUE=false
-    /nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum confirm "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --border normal --margin '1' --padding '1 2' "Are you sure you want to install?" "$(/nix/store/vy3jw36xkys56r4qx244r2sdmif5zgg2-gum-0.13.0/bin/gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')")" && CONTINUE=true
+    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' "Are you sure you want to install?" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         echo "Exiting. Have a good day!"
         exit
