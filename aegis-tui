@@ -219,7 +219,7 @@ Partitioning() {
 Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
-    desktop=$(gum choose --limit 1 gnome kde budgie mate cinnamon lxqt sway i3gaps herbstluftwm awesome bspwm)
+    desktop=$(gum choose --limit 1 gnome xfce)
 }
 
 Theme() {
