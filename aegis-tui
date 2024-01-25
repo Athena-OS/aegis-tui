@@ -190,6 +190,28 @@ ManualDisk() {
         echo Manual BIOS partitioning is not supported yet
     fi
 
+Swap() {
+    clear
+    create_swap=false
+    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' 'Create a swap partition?')" && create_swap=true
+    if [[ $create_swap == "true" ]]; then
+        gum style --border normal --margin "1" --padding "1 2" "Select a swap partition size"
+        swap_size=$(gum choose --limit 1 1GiB 2GiB 4GiB 8GiB)
+    fi
+}
+    
+Partitioning() {
+    clear
+    gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
+    partmode=$(gum choose --limit 1 auto manual)
+
+    if [[ "$partmode" == "auto" ]]; then
+        Swap
+        AutoDisk
+    elif [[ "$partmode" == "manual" ]]; then
+        ManualDisk
+    fi
+}
 
 Desktop() {
     clear
@@ -219,6 +241,28 @@ Misc() {
     fi
 }
 
+InstallParams() {
+    clear
+    gum style --border normal --margin "1" --padding "1 2" "Please enter the number of cores assigned to the installer (0: all)"
+    while ! [[ "$cores" =~ ^[0-9]+$ ]]; do
+        cores=$(gum input --placeholder "Please enter a core number")
+        [ -z "$cores" ] && echo "Please enter a value."
+        [ -n "$cores" ] && ! [[ "$cores" =~ ^[0-9]+$ ]] && echo "Please enter a valid number."
+    done
+
+    clear
+    gum style --border normal --margin "1" --padding "1 2" "Please enter the number of maximum jobs assigned to the installer"
+    while ! [[ "$jobs" =~ ^[0-9]+$ ]]; do
+        jobs=$(gum input --placeholder "Please enter a core number")
+        [ -z "$jobs" ] && echo "Please enter a value."
+        [ -n "$jobs" ] && ! [[ "$jobs" =~ ^[0-9]+$ ]] && echo "Please enter a valid number."
+    done
+
+    clear
+    keep_going=false
+    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' 'Must the installer go on even if a build fails?')" && keep_going=true
+}
+
 
 Summary() {
     clear
@@ -227,7 +271,7 @@ Summary() {
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
-        
+        InstallParams
         # Remove config.json if it exists
         if [[ $(ls | grep "/tmp/config.json") ]]; then
             rm /tmp/config.json
@@ -269,17 +313,17 @@ Summary() {
         \"desktop\": \"$desktop\",
         \"timeshift\": $enable_timeshift,
         \"extra_packages\": [
-            $keep_going
+        
         ],
         \"flatpak\": $enable_flatpak,
         \"zramd\": $enable_zramd,
-        \"hardened\": false
-        \"kernel\": \"linux\"
+        \"hardened\": false,
+        \"kernel\": \"linux\",
         \"params\": {
             \"cores\": \"$cores\",
             \"jobs\": \"$jobs\",
             \"keep\": $keep_going
-        },
+        }
     }" > /tmp/config.json
     fi
 }
@@ -311,6 +355,7 @@ Password
 RootPassword
 Shell
 Hostname
+Partitioning
 Desktop
 Misc
 UEFICheck
