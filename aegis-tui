@@ -129,7 +129,6 @@ AutoDisk() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
     disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
-    disk=$(echo $disk_dev | awk '{ print substr ($0, 6 ) }')
 }
 
 UEFICheck() {
@@ -356,7 +355,7 @@ InstallParams() {
 Summary() {
     clear
     CONTINUE=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "keymap: $keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk" "desktop: $desktop" "ipv6: $enable_ipv6" "enable snapper: $enable_snapper" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "keymap: $keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "desktop: $desktop" "ipv6: $enable_ipv6" "enable snapper: $enable_snapper" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
@@ -368,7 +367,7 @@ Summary() {
         # Make config.json
         echo "{
         \"partition\": {
-            \"device\": \"$disk\",
+            \"device\": \"$disk_dev\",
             \"mode\": \"$partmode\",
             \"efi\": $is_uefi,
             \"swap\": $create_swap,
