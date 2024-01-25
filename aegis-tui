@@ -190,15 +190,7 @@ ManualDisk() {
         echo Manual BIOS partitioning is not supported yet
     fi
 
-Swap() {
-    clear
-    create_swap=false
-    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' 'Create a swap partition?')" && create_swap=true
-    if [[ $create_swap == "true" ]]; then
-        gum style --border normal --margin "1" --padding "1 2" "Select a swap partition size"
-        swap_size=$(gum choose --limit 1 1GiB 2GiB 4GiB 8GiB)
-    fi
-}
+
     
 Partitioning() {
     clear
@@ -206,7 +198,6 @@ Partitioning() {
     partmode=$(gum choose --limit 1 auto manual)
 
     if [[ "$partmode" == "auto" ]]; then
-        Swap
         AutoDisk
     elif [[ "$partmode" == "manual" ]]; then
         ManualDisk
