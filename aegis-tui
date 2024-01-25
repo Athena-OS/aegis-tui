@@ -410,7 +410,6 @@ Summary() {
         ],
         \"flatpak\": $enable_flatpak,
         \"zramd\": $enable_zramd,
-        \"hardened\": false,
         \"kernel\": \"linux\",
         \"params\": {
             \"cores\": \"$cores\",
