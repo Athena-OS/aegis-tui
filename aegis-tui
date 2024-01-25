@@ -125,14 +125,7 @@ Hostname() {
     hostname=$(gum input --placeholder "Please enter a hostname")
 }
 
-AutoDisk() {
-    clear
-    gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
-    disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
-}
-
-UEFICheck() {
-    is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
+UEFICheck() { 
     if [[ $is_uefi == "true" ]]; then
         grub_type="grub-efi"
         grub_location="/boot"
@@ -142,9 +135,18 @@ UEFICheck() {
     fi
 }
 
+AutoDisk() {
+    clear
+    gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
+    disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+    is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
+    UEFICheck
+}
+
 ManualDisk() {
     partitions=()
     # 1. Check if UEFI or BIOS
+    is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
     if [[ $is_uefi == "true" ]]; then
         # 2. Show what the user has to create like in arch wiki
         gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
@@ -253,6 +255,8 @@ ManualDisk() {
     done
     # Remove the trailing comma
     partitions_setup="${partitions_setup%, }"
+
+    UEFICheck
 }
 
 Swap() {
