@@ -191,19 +191,6 @@ ManualDisk() {
     fi
 
 
-    
-Partitioning() {
-    clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
-    partmode=$(gum choose --limit 1 auto manual)
-
-    if [[ "$partmode" == "auto" ]]; then
-        AutoDisk
-    elif [[ "$partmode" == "manual" ]]; then
-        ManualDisk
-    fi
-}
-
 Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
@@ -324,7 +311,6 @@ Password
 RootPassword
 Shell
 Hostname
-Partitioning
 Desktop
 Misc
 UEFICheck
