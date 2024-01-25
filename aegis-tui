@@ -221,7 +221,7 @@ ManualDisk() {
         gum join --vertical "$PART_TABLE" "$SWAP_ROW" "$ROOT_ROW"
 
         # 3. Open cfdisk
-        gum style --border normal --margin "1" --padding "1 2" "No need to create GRUB partition. It will be created automatically in the boot sector." "$(gum style 'Please select the disk to partition')" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
+        gum style --border normal --margin "1" --padding "1 2" "No need to create GRUB partition." "$(gum style 'It is created automatically in the boot sector.')" "$(gum style 'Please select the disk to partition')" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
         disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         clear
         gum style --border normal --margin "1" --padding "1 2" "Password: athena"
