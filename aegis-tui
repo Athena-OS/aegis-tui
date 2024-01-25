@@ -33,7 +33,7 @@ Welcome() {
            ▟██████▙       ▜███▙
           ▟███▛▜███▙       ▜███▙
          ▟███▛  ▜███▙       ▜███▙
-         ▝▀▀▀    ▀▀▀▀▘       ▀▀▀▘')" "" "Welcome to aegis-tui" "Ready to make your Athena installation... ready?" "$(gum style --foreground "$main_color" "aegis-tui version: $version")")" && CONTINUE=true
+         ▝▀▀▀    ▀▀▀▀▘       ▀▀▀▘')" "" "Welcome to Aegis TUI" "Ready to make your Athena installation... ready?" "$(gum style --foreground "$main_color" "aegis-tui version: $version")")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         echo "Exiting. Have a good day!"
         exit
