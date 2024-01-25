@@ -271,7 +271,7 @@ Summary() {
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
-        InstallParams
+        #InstallParams
         # Remove config.json if it exists
         if [[ $(ls | grep "/tmp/config.json") ]]; then
             rm /tmp/config.json
@@ -313,7 +313,7 @@ Summary() {
         \"desktop\": \"$desktop\",
         \"timeshift\": $enable_timeshift,
         \"extra_packages\": [
-        
+            $keep_going
         ],
         \"flatpak\": $enable_flatpak,
         \"zramd\": $enable_zramd,
