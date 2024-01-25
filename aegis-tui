@@ -448,6 +448,7 @@ Password
 RootPassword
 Shell
 Hostname
+UEFICheck
 Partitioning
 Desktop
 Theme
@@ -455,6 +456,5 @@ DisplayManager
 Browser
 Terminal
 Misc
-UEFICheck
 Summary
 Install
