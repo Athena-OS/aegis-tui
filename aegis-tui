@@ -369,7 +369,7 @@ Summary() {
         echo "{
         \"partition\": {
             \"device\": \"$disk\",
-            \"mode\": \"Auto\",
+            \"mode\": \"$partmode\",
             \"efi\": $is_uefi,
             \"swap\": $create_swap,
             \"swap_size\": \"$swap_size\",
