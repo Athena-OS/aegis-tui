@@ -167,7 +167,7 @@ ManualDisk() {
 
         # 3. Open cfdisk
         gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
-        disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+        disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 )
         clear
         gum style --border normal --margin "1" --padding "1 2" "Password: athena"
         sudo cfdisk $disk_dev
@@ -175,7 +175,7 @@ ManualDisk() {
         # 4. Ask what partition is what
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition"
-        efi_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+        efi_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition mountpoint"
         efi_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
@@ -183,11 +183,11 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition file system"
         efi_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
 
-        partitions+=("/mnt$efi_part_mount:$efi_part:$efi_part_fs")
+        partitions+=("/mnt$efi_part_mount:/dev/$efi_part:$efi_part_fs")
 
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
-        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
         root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
@@ -195,14 +195,14 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
         root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
 
-        partitions+=("/mnt$root_part_mount:$root_part:$root_part_fs")
+        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs")
 
         clear
         create_swap=false
         gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Did you create a swap partition?')" && create_swap=true
         if [[ $create_swap == "true" ]]; then
-            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
-            partitions+=("none:$swap_part:linux-swap")
+            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
+            partitions+=("none:/dev/$swap_part:linux-swap")
         fi
     else
         # 2. Show what the user has to create like in arch wiki
@@ -230,7 +230,7 @@ ManualDisk() {
         # 4. Ask what partition is what
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
-        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
         root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
@@ -238,14 +238,14 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
         root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
 
-        partitions+=("/mnt$root_part_mount:$root_part:$root_part_fs")
+        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs")
 
         clear
         create_swap=false
         gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Did you create a swap partition?')" && create_swap=true
         if [[ $create_swap == "true" ]]; then
-            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
-            partitions+=("none:$swap_part:linux-swap")
+            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
+            partitions+=("none:/dev/$swap_part:linux-swap")
         fi
     fi
 
