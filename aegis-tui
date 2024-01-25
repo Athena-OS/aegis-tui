@@ -144,16 +144,15 @@ UEFICheck() {
 }
 
 ManualDisk() {
-    testing="true"
-    # TODO: Add manual disk partitioning support
+    partitions=()
     # 1. Check if UEFI or BIOS
-    if [[ $is_uefi == "true" || $testing == "true" ]]; then
+    if [[ $is_uefi == "true" ]]; then
         # 2. Show what the user has to create like in arch wiki
         gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
-        gum style --border normal --foreground $warning_color "Note: swap partition needs to be enabled after install"
         echo ""
         echo ""
 
+        PART_TABLE=$(gum style --border normal "GPT")
         EFI_PART=$(gum style --border normal "EFI system partition")
         EFI_SIZE=$(gum style --border normal "At least 300 MiB")
         SWAP_PART=$(gum style --border normal "Linux swap")
@@ -164,7 +163,7 @@ ManualDisk() {
         SWAP_ROW=$(gum join "$SWAP_PART" "$SWAP_SIZE")
         ROOT_ROW=$(gum join "$ROOT_PART" "$ROOT_SIZE")
 
-        gum join --vertical "$EFI_ROW" "$SWAP_ROW" "$ROOT_ROW"
+        gum join --vertical "$PART_TABLE" "$EFI_ROW" "$SWAP_ROW" "$ROOT_ROW"
 
         # 3. Open cfdisk
         gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
@@ -179,18 +178,82 @@ ManualDisk() {
         efi_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition mountpoint"
-        efi_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
+        efi_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Select EFI partition file system"
+        efi_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
+
+        partitions+=("/mnt$efi_part_mount:$efi_part:$efi_part_fs")
+
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
         root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
         root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
+        root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
 
-        # TODO: remove junk from efi_part, root_part
+        partitions+=("/mnt$root_part_mount:$root_part:$root_part_fs")
+
+        clear
+        create_swap=false
+        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Did you create a swap partition?')" && create_swap=true
+        if [[ $create_swap == "true" ]]; then
+            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+            partitions+=("none:$swap_part:linux-swap")
+        fi
     else
-        echo Manual BIOS partitioning is not supported yet
+        # 2. Show what the user has to create like in arch wiki
+        gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
+        echo ""
+        echo ""
+
+        PART_TABLE=$(gum style --border normal "DOS")
+        SWAP_PART=$(gum style --border normal "Linux swap")
+        SWAP_SIZE=$(gum style --border normal "More than 512 MiB")
+        ROOT_PART=$(gum style --border normal "Linux x86-64 root")
+        ROOT_SIZE=$(gum style --border normal "Remainder of the device")
+        SWAP_ROW=$(gum join "$SWAP_PART" "$SWAP_SIZE")
+        ROOT_ROW=$(gum join "$ROOT_PART" "$ROOT_SIZE")
+
+        gum join --vertical "$PART_TABLE" "$SWAP_ROW" "$ROOT_ROW"
+
+        # 3. Open cfdisk
+        gum style --border normal --margin "1" --padding "1 2" "No need to create GRUB partition. It will be created automatically in the boot sector." "$(gum style 'Please select the disk to partition')" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
+        disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Password: athena"
+        sudo cfdisk $disk_dev
+
+        # 4. Ask what partition is what
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Select root partition"
+        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
+        root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
+        root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
+
+        partitions+=("/mnt$root_part_mount:$root_part:$root_part_fs")
+
+        clear
+        create_swap=false
+        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Did you create a swap partition?')" && create_swap=true
+        if [[ $create_swap == "true" ]]; then
+            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+            partitions+=("none:$swap_part:linux-swap")
+        fi
     fi
+
+    for partition in "${partitions[@]}"; do
+      partitions_setup+="\"$partition\", "
+    done
+    # Remove the trailing comma
+    partitions_setup="${partitions_setup%, }"
 }
 
 Swap() {
@@ -310,7 +373,7 @@ Summary() {
             \"efi\": $is_uefi,
             \"swap\": $create_swap,
             \"swap_size\": \"$swap_size\",
-            \"partitions\": []
+            \"partitions\": [$partitions_setup]
         },
         \"bootloader\": {
             \"type\": \"$grub_type\",
