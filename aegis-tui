@@ -269,12 +269,12 @@ Swap() {
 Partitioning() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
-    partmode=$(gum choose --limit 1 auto manual)
+    partmode=$(gum choose --limit 1 Auto Manual)
 
-    if [[ "$partmode" == "auto" ]]; then
+    if [[ "$partmode" == "Auto" ]]; then
         Swap
         AutoDisk
-    elif [[ "$partmode" == "manual" ]]; then
+    elif [[ "$partmode" == "Manual" ]]; then
         ManualDisk
     fi
 }
