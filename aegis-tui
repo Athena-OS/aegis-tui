@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="2.0.0 beta"
+version="1.0.0"
 
 main_color="#ffd700"
 warning_color="#ff0000"
@@ -11,10 +11,10 @@ export GUM_CHOOSE_CURSOR_FOREGROUND="$main_color"
 export GUM_CHOOSE_SELECTED_FOREGROUND="$main_color"
 export GUM_INPUT_CURSOR_FOREGROUND="$main_color"
 export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
-export FOREGROUND="#2B2B2B"
+export FOREGROUND="#ffffff"
 
 Welcome() {
-    gum confirm "$(gum style --border normal --margin '1' --padding '1 2' "$(gum style --foreground "$main_color" '▗▄▄▄       ▗▄▄▄▄    ▄▄▄▖
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "$(gum style --foreground "$main_color" '          ▗▄▄▄       ▗▄▄▄▄    ▄▄▄▖
           ▜███▙       ▜███▙  ▟███▛
            ▜███▙       ▜███▙▟███▛
             ▜███▙       ▜██████▛
@@ -33,7 +33,7 @@ Welcome() {
            ▟██████▙       ▜███▙
           ▟███▛▜███▙       ▜███▙
          ▟███▛  ▜███▙       ▜███▙
-         ▝▀▀▀    ▀▀▀▀▘       ▀▀▀▘')" "" "Welcome to aegis-tui" "Ready to make your Athena installation... ready?" "$(gum style --foreground "#2B2B2B" "aegis-tui version: $version")")" && CONTINUE=true
+         ▝▀▀▀    ▀▀▀▀▘       ▀▀▀▘')" "" "Welcome to aegis-tui" "Ready to make your Athena installation... ready?" "$(gum style --foreground "$main_color" "aegis-tui version: $version")")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         echo "Exiting. Have a good day!"
         exit
