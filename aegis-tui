@@ -436,8 +436,7 @@ Install() {
         echo "Exiting. Have a good day!"
         exit
     else
-        #sudo athena-aegis config /tmp/config.json
-        echo "Running fake sudo athena-aegis config /tmp/config.json"
+        sudo athena-aegis config /tmp/config.json
     fi
 }
 
