@@ -300,11 +300,11 @@ DisplayManager() {
     dm=$(gum choose --limit 1 gdm lightdm)
 }
 
-Browser() {
-    clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a browser to use"
-    browser=$(gum choose --limit 1 firefox)
-}
+#Browser() {
+#    clear
+#    gum style --border normal --margin "1" --padding "1 2" "Select a browser to use"
+#    browser=$(gum choose --limit 1 firefox)
+#}
 
 Terminal() {
     clear
@@ -405,7 +405,7 @@ Summary() {
         \"desktop\": \"$desktop\",
         \"theme\": \"$theme\",
         \"displaymanager\": \"$dm\",
-        \"browser\": \"$browser\",
+        \"browser\": \"firefox\",
         \"terminal\": \"$terminal\",
         \"snapper\": $enable_snapper,
         \"extra_packages\": [
@@ -454,7 +454,7 @@ Partitioning
 Desktop
 Theme
 DisplayManager
-Browser
+#Browser
 Terminal
 Misc
 Summary
