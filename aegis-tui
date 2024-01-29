@@ -243,7 +243,7 @@ ManualDisk() {
 
         clear
         create_swap=false
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Did you create a swap partition?')" && create_swap=true
+        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
         if [[ $create_swap == "true" ]]; then
             swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
             partitions+=("none:/dev/$swap_part:linux-swap")
@@ -285,13 +285,13 @@ Partitioning() {
 Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
-    desktop=$(gum choose --limit 1 gnome xfce)
+    desktop=$(gum choose --limit 1 gnome cinnamon mate)
 }
 
 Theme() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a theme to use"
-    theme=$(gum choose --limit 1 graphite)
+    theme=$(gum choose --limit 1 akame cyborg graphite hackthebox samurai sweet)
 }
 
 DisplayManager() {
@@ -315,16 +315,12 @@ Terminal() {
 Misc() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Some miscellaneous settings" "Use space to enable/disable"
-    misc_settings=$(gum choose --limit 4 "Enable ipv6" "Enable snapper" "Enable zramd" "Enable flatpak")
+    misc_settings=$(gum choose --limit 3 "Enable ipv6" "Enable zramd" "Enable flatpak")
     enable_ipv6="false"
-    enable_snapper="false"
     enable_zramd="false"
     enable_flatpak="false"
     if [[ $misc_settings == *"ipv6"* ]]; then
         enable_ipv6="true"
-    fi
-    if [[ $misc_settings == *"snapper"* ]]; then
-        enable_snapper="true"
     fi
     if [[ $misc_settings == *"zramd"* ]]; then
         enable_zramd="true"
@@ -359,7 +355,7 @@ InstallParams() {
 Summary() {
     clear
     CONTINUE=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "keymap: $keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "desktop: $desktop" "ipv6: $enable_ipv6" "enable snapper: $enable_snapper" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "keymap: $keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "desktop: $desktop" "ipv6: $enable_ipv6" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
@@ -407,7 +403,6 @@ Summary() {
         \"displaymanager\": \"$dm\",
         \"browser\": \"firefox\",
         \"terminal\": \"$terminal\",
-        \"snapper\": $enable_snapper,
         \"extra_packages\": [
         
         ],
