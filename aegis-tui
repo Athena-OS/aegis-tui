@@ -144,7 +144,9 @@ AutoDisk() {
 }
 
 ManualDisk() {
+    # Initialize to prevent that, in case of change after Summary section, the variables in "partitions" inside JSON file are erroneously duplicated
     partitions=()
+    partitions_setup=()
     # 1. Check if UEFI or BIOS
     is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
     if [[ $is_uefi == "true" ]]; then
