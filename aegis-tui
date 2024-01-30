@@ -200,8 +200,9 @@ ManualDisk() {
 
         clear
         create_swap=false
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Did you create a swap partition?')" && create_swap=true
+        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
         if [[ $create_swap == "true" ]]; then
+            gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
             swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
             partitions+=("none:/dev/$swap_part:linux-swap")
         fi
@@ -245,6 +246,7 @@ ManualDisk() {
         create_swap=false
         gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
         if [[ $create_swap == "true" ]]; then
+            gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
             swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
             partitions+=("none:/dev/$swap_part:linux-swap")
         fi
