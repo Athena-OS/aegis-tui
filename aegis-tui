@@ -169,7 +169,7 @@ ManualDisk() {
         gum join --vertical "$PART_TABLE" "$EFI_ROW" "$SWAP_ROW" "$ROOT_ROW"
 
         # 3. Open cfdisk
-        gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
+        gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'erase the whole disk')"
         disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 )
         clear
         gum style --border normal --margin "1" --padding "1 2" "Password: athena"
