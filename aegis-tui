@@ -422,7 +422,7 @@ Summary() {
 
 Change() {
     gum style --border normal --margin '1' --padding '1 2' "What do you want to change?"
-    $(gum choose --limit 1 Timezone Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Misc)
+    $(gum choose --limit 1 Timezone Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Theme DisplayManager Terminal Misc)
     Summary
 }
 
