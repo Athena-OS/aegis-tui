@@ -137,7 +137,7 @@ UEFICheck() {
 
 AutoDisk() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
+    gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
     disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
     is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
     UEFICheck
@@ -169,7 +169,7 @@ ManualDisk() {
         gum join --vertical "$PART_TABLE" "$EFI_ROW" "$SWAP_ROW" "$ROOT_ROW"
 
         # 3. Open cfdisk
-        gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
+        gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
         disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 )
         clear
         gum style --border normal --margin "1" --padding "1 2" "Password: athena"
@@ -225,7 +225,7 @@ ManualDisk() {
         gum join --vertical "$PART_TABLE" "$SWAP_ROW" "$ROOT_ROW"
 
         # 3. Open cfdisk
-        gum style --border normal --margin "1" --padding "1 2" "No need to create GRUB partition." "$(gum style 'It is created automatically in the boot sector.')" "$(gum style 'Please select the disk to partition')" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')"
+        gum style --border normal --margin "1" --padding "1 2" "No need to create GRUB partition." "$(gum style 'It is created automatically in the boot sector.')" "$(gum style 'Please select the disk to partition')" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
         disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         clear
         gum style --border normal --margin "1" --padding "1 2" "Password: athena"
@@ -430,7 +430,7 @@ Change() {
 
 Install() {
     CONTINUE=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Are you sure you want to install?" "$(gum style --foreground "$warning_color" 'WARNING: This will erease the whole disk')")" && CONTINUE=true
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Are you sure you want to install?" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         echo "Exiting. Have a good day!"
         exit
