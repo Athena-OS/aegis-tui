@@ -45,7 +45,7 @@ Timezone() {
 }
 
 Keymap() {
-    keymap=$(localectl list-x11-keymap-layouts | gum filter --placeholder "select a keymap")
+    keymap=$(cat /usr/share/aegis-tui/keymaps | gum filter --placeholder "select a keymap")
 }
 
 Locale() {
