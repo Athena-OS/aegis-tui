@@ -58,6 +58,8 @@ Username() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Please enter your username"
     username=$(gum input --placeholder "Please enter your username")
+    # Remove spaces from the input string using parameter expansion
+    username="${username// /}"
 }
 
 Password() {
@@ -123,6 +125,8 @@ Hostname() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Please enter a hostname"
     hostname=$(gum input --placeholder "Please enter a hostname")
+    # Remove spaces from the input string using parameter expansion
+    hostname="${hostname// /}"
 }
 
 UEFICheck() { 
