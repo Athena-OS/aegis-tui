@@ -368,10 +368,6 @@ InstallParams() {
         [ -z "$jobs" ] && echo "Please enter a value."
         [ -n "$jobs" ] && ! [[ "$jobs" =~ ^[0-9]+$ ]] && echo "Please enter a valid number."
     done
-
-    clear
-    keep_going=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Must the installer go on even if a build fails?')" && keep_going=true
 }
 
 Summary() {
@@ -436,8 +432,7 @@ Summary() {
         \"kernel\": \"linux\",
         \"params\": {
             \"cores\": \"$cores\",
-            \"jobs\": \"$jobs\",
-            \"keep\": $keep_going
+            \"jobs\": \"$jobs\"
         }
     }" > /tmp/config.json
     fi
