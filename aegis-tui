@@ -14,29 +14,19 @@ export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
 export FOREGROUND="#ffffff"
 
 Welcome() {
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "$(gum style --foreground "$main_color" '          ▗▄▄▄       ▗▄▄▄▄    ▄▄▄▖
-          ▜███▙       ▜███▙  ▟███▛
-           ▜███▙       ▜███▙▟███▛
-            ▜███▙       ▜██████▛
-     ▟█████████████████▙ ▜████▛     ▟▙
-    ▟███████████████████▙ ▜███▙    ▟██▙
-           ▄▄▄▄▖           ▜███▙  ▟███▛
-          ▟███▛             ▜██▛ ▟███▛
-         ▟███▛               ▜▛ ▟███▛
-▟███████████▛                  ▟██████████▙
-▜██████████▛                  ▟███████████▛
-      ▟███▛ ▟▙               ▟███▛
-     ▟███▛ ▟██▙             ▟███▛
-    ▟███▛  ▜███▙           ▝▀▀▀▀
-    ▜██▛    ▜███▙ ▜██████████████████▛
-     ▜▛     ▟████▙ ▜████████████████▛
-           ▟██████▙       ▜███▙
-          ▟███▛▜███▙       ▜███▙
-         ▟███▛  ▜███▙       ▜███▙
-         ▝▀▀▀    ▀▀▀▀▘       ▀▀▀▘')" "" "Welcome to Aegis TUI" "Ready to make your Athena installation... ready?" "$(gum style --foreground "$main_color" "aegis-tui version: $version")")" && CONTINUE=true
+    clear
+    gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "Arch Linux or NixOS base system?"
+    baseos=$(gum choose --limit 1 'Arch Linux' NixOS)
+
+    if [[ "$baseos" == "Arch Linux" ]]; then
+        osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA52TUQ6EIAxE/z0FRyWuGg+waTRovFtPIilxV2Va0H7SmddCi3MwmLpGy2xMI9OM80d6NERXjaFEQl3O1DJ9mTzTUuk5FejFviJvbtQbqyj7xIwRzwmQ8xaDYCVWkLloowFEExgOjUY7o+zW/qqKtoovptIG2bCO6RP3rKnm/a5qXfbWpgJNz+/vm5SOddyVFqWTwyGfx+cEAYSsMvCn7Yi2HWcEzBuVBAAA" | gunzip)")
+    elif [[ "$baseos" == "NixOS" ]]; then
+        osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA6WUzQ3DIAyF70zBqDnkkAncWjTqbkzSSlCw8U+tJPIFw/sQz45znl+FR4W9hZLqWbKGlJn8VeH4BVrZCm+SKAwRY7iEEEKKOTMeKMllAjHdo+t34ILE1cOd1sizxnNy2bM8Lh7EY3SKpo/ZteJiPmMym+E+nL1/fXzrCBdqtCPzCAN64bv+U7SjZ4VtxACQAmepDzj416BeftXaizeIaaJWzBgrXveH5pLb+RcIszBtvZF4jlMz9VV/AOenEZ3PBQAA" | gunzip)")
+    fi
+    clear
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "$(gum style --foreground "$main_color" "$osbanner")" "Ready to make your Athena installation... ready?" "$(gum style --foreground "$main_color" "aegis-tui version: $version")")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
-        echo "Exiting. Have a good day!"
-        exit
+        Exit
     fi
 }
 
@@ -45,7 +35,11 @@ Timezone() {
 }
 
 VirtKeymap() {
-    virtkeymap=$(cat /usr/share/aegis-tui/keymaps | gum filter --placeholder "select a console keymap")
+    if [[ "$baseos" == "Arch Linux" ]]; then
+        virtkeymap=$(localectl list-keymaps | gum filter --placeholder "select a console keymap")
+    elif [[ "$baseos" == "NixOS" ]]; then
+        virtkeymap=$(cat /usr/share/aegis-tui/keymaps | gum filter --placeholder "select a console keymap")
+    fi
 }
 
 X11Keymap() {
@@ -297,7 +291,11 @@ Partitioning() {
 Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
-    desktop=$(gum choose --limit 1 gnome cinnamon mate)
+    if [[ "$baseos" == "Arch Linux" ]]; then
+        desktop=$(gum choose --limit 1 gnome cinnamon mate bspwm kde hyprland 'xfce refined' 'xfce picom')
+    elif [[ "$baseos" == "NixOS" ]]; then
+        desktop=$(gum choose --limit 1 gnome cinnamon mate)
+    fi
 }
 
 Theme() {
@@ -309,19 +307,31 @@ Theme() {
 DisplayManager() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a display manager to use"
-    dm=$(gum choose --limit 1 gdm lightdm)
+    if [[ "$baseos" == "Arch Linux" ]]; then
+        dm=$(gum choose --limit 1 gdm lightdm sddm)
+    elif [[ "$baseos" == "NixOS" ]]; then
+        dm=$(gum choose --limit 1 gdm lightdm)
+    fi
 }
 
-#Browser() {
-#    clear
-#    gum style --border normal --margin "1" --padding "1 2" "Select a browser to use"
-#    browser=$(gum choose --limit 1 firefox)
-#}
+Browser() {
+    clear
+    gum style --border normal --margin "1" --padding "1 2" "Select a browser to use"
+    if [[ "$baseos" == "Arch Linux" ]]; then
+        browser=$(gum choose --limit 1 firefox brave)
+    elif [[ "$baseos" == "NixOS" ]]; then
+        browser=$(gum choose --limit 1 firefox)
+    fi
+}
 
 Terminal() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a terminal to use"
-    terminal=$(gum choose --limit 1 alacritty kitty)
+    if [[ "$baseos" == "Arch Linux" ]]; then
+        terminal=$(gum choose --limit 1 alacritty kitty 'cool retro term' foot 'gnome terminal' 'konsole' 'terminator' 'terminology' 'urxvt' 'xfce' 'xterm')
+    elif [[ "$baseos" == "NixOS" ]]; then
+        terminal=$(gum choose --limit 1 alacritty kitty)
+    fi
 }
 
 Misc() {
@@ -367,11 +377,13 @@ InstallParams() {
 Summary() {
     clear
     CONTINUE=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "console keymap: $virtkeymap" "GUI keymap: $x11keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "desktop: $desktop" "ipv6: $enable_ipv6" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "console keymap: $virtkeymap" "GUI keymap: $x11keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "desktop: $desktop" "theme: $theme" "display manager: $dm" "browser: $browser" "terminal: $terminal" "ipv6: $enable_ipv6" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
-        InstallParams
+        if [[ "$baseos" == "NixOS" ]]; then
+            InstallParams
+        fi
         # Remove config.json if it exists
         if [[ $(ls | grep "/tmp/config.json") ]]; then
             rm /tmp/config.json
@@ -414,7 +426,7 @@ Summary() {
         \"desktop\": \"$desktop\",
         \"theme\": \"$theme\",
         \"displaymanager\": \"$dm\",
-        \"browser\": \"firefox\",
+        \"browser\": \"$browser\",
         \"terminal\": \"$terminal\",
         \"extra_packages\": [
         
@@ -433,7 +445,7 @@ Summary() {
 
 Change() {
     gum style --border normal --margin '1' --padding '1 2' "What do you want to change?"
-    $(gum choose --limit 1 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Theme DisplayManager Terminal Misc)
+    $(gum choose --limit 1 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Theme DisplayManager Browser Terminal Misc Exit)
     Summary
 }
 
@@ -441,11 +453,16 @@ Install() {
     CONTINUE=false
     gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Are you sure you want to install?" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
-        echo "Exiting. Have a good day!"
-        exit
+        Exit
     else
         sudo athena-aegis config /tmp/config.json
     fi
+}
+
+Exit() {
+    clear
+    echo "Exiting. Have a good day!"
+    exit    
 }
 
 Welcome
@@ -463,7 +480,7 @@ Partitioning
 Desktop
 Theme
 DisplayManager
-#Browser
+Browser
 Terminal
 Misc
 Summary
