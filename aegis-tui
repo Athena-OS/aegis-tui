@@ -450,7 +450,11 @@ Install() {
     if [[ $CONTINUE != "true" ]]; then
         Exit
     else
-        sudo athena-aegis config /tmp/config.json
+        if [[ "$baseos" == "Arch Linux" ]]; then
+            sudo aegis-arch config /tmp/config.json
+        elif [[ "$baseos" == "NixOS" ]]; then
+            sudo aegis-nix config /tmp/config.json
+        fi
     fi
 }
 
