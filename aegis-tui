@@ -15,12 +15,12 @@ export FOREGROUND="#ffffff"
 
 Welcome() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "Arch Linux or NixOS base system?"
-    baseos=$(gum choose --limit 1 'Arch Linux' NixOS)
+    gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "Athena Arch or Athena Nix?"
+    baseos=$(gum choose --limit 1 'Athena Arch' 'Athena Nix')
 
-    if [[ "$baseos" == "Arch Linux" ]]; then
+    if [[ "$baseos" == "Athena Arch" ]]; then
         osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA52TUQ6EIAxE/z0FRyWuGg+waTRovFtPIilxV2Va0H7SmddCi3MwmLpGy2xMI9OM80d6NERXjaFEQl3O1DJ9mTzTUuk5FejFviJvbtQbqyj7xIwRzwmQ8xaDYCVWkLloowFEExgOjUY7o+zW/qqKtoovptIG2bCO6RP3rKnm/a5qXfbWpgJNz+/vm5SOddyVFqWTwyGfx+cEAYSsMvCn7Yi2HWcEzBuVBAAA" | gunzip)")
-    elif [[ "$baseos" == "NixOS" ]]; then
+    elif [[ "$baseos" == "Athena Nix" ]]; then
         osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA6WUzQ3DIAyF70zBqDnkkAncWjTqbkzSSlCw8U+tJPIFw/sQz45znl+FR4W9hZLqWbKGlJn8VeH4BVrZCm+SKAwRY7iEEEKKOTMeKMllAjHdo+t34ILE1cOd1sizxnNy2bM8Lh7EY3SKpo/ZteJiPmMym+E+nL1/fXzrCBdqtCPzCAN64bv+U7SjZ4VtxACQAmepDzj416BeftXaizeIaaJWzBgrXveH5pLb+RcIszBtvZF4jlMz9VV/AOenEZ3PBQAA" | gunzip)")
     fi
     clear
@@ -35,9 +35,9 @@ Timezone() {
 }
 
 VirtKeymap() {
-    if [[ "$baseos" == "Arch Linux" ]]; then
+    if [[ "$baseos" == "Athena Arch" ]]; then
         virtkeymap=$(localectl list-keymaps | gum filter --placeholder "select a console keymap")
-    elif [[ "$baseos" == "NixOS" ]]; then
+    elif [[ "$baseos" == "Athena Nix" ]]; then
         virtkeymap=$(cat /usr/share/aegis-tui/keymaps | gum filter --placeholder "select a console keymap")
     fi
 }
@@ -291,9 +291,9 @@ Partitioning() {
 Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
-    if [[ "$baseos" == "Arch Linux" ]]; then
+    if [[ "$baseos" == "Athena Arch" ]]; then
         desktop=$(gum choose --limit 1 gnome cinnamon mate bspwm kde hyprland 'xfce refined' 'xfce picom')
-    elif [[ "$baseos" == "NixOS" ]]; then
+    elif [[ "$baseos" == "Athena Nix" ]]; then
         desktop=$(gum choose --limit 1 gnome cinnamon mate)
     fi
 }
@@ -307,9 +307,9 @@ Theme() {
 DisplayManager() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a display manager to use"
-    if [[ "$baseos" == "Arch Linux" ]]; then
+    if [[ "$baseos" == "Athena Arch" ]]; then
         dm=$(gum choose --limit 1 gdm lightdm sddm)
-    elif [[ "$baseos" == "NixOS" ]]; then
+    elif [[ "$baseos" == "Athena Nix" ]]; then
         dm=$(gum choose --limit 1 gdm lightdm)
     fi
 }
@@ -317,9 +317,9 @@ DisplayManager() {
 Browser() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a browser to use"
-    if [[ "$baseos" == "Arch Linux" ]]; then
+    if [[ "$baseos" == "Athena Arch" ]]; then
         browser=$(gum choose --limit 1 firefox brave)
-    elif [[ "$baseos" == "NixOS" ]]; then
+    elif [[ "$baseos" == "Athena Nix" ]]; then
         browser=$(gum choose --limit 1 firefox)
     fi
 }
@@ -327,9 +327,9 @@ Browser() {
 Terminal() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a terminal to use"
-    if [[ "$baseos" == "Arch Linux" ]]; then
+    if [[ "$baseos" == "Athena Arch" ]]; then
         terminal=$(gum choose --limit 1 alacritty kitty 'cool retro term' foot 'gnome terminal' 'konsole' 'terminator' 'terminology' 'urxvt' 'xfce' 'xterm')
-    elif [[ "$baseos" == "NixOS" ]]; then
+    elif [[ "$baseos" == "Athena Nix" ]]; then
         terminal=$(gum choose --limit 1 alacritty kitty)
     fi
 }
@@ -377,7 +377,7 @@ Summary() {
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
-        if [[ "$baseos" == "NixOS" ]]; then
+        if [[ "$baseos" == "Athena Nix" ]]; then
             InstallParams
         fi
         # Remove config.json if it exists
@@ -450,9 +450,9 @@ Install() {
     if [[ $CONTINUE != "true" ]]; then
         Exit
     else
-        if [[ "$baseos" == "Arch Linux" ]]; then
+        if [[ "$baseos" == "Athena Arch" ]]; then
             sudo aegis-arch config /tmp/config.json
-        elif [[ "$baseos" == "NixOS" ]]; then
+        elif [[ "$baseos" == "Athena Nix" ]]; then
             sudo aegis-nix config /tmp/config.json
         fi
     fi
