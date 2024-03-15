@@ -48,8 +48,6 @@ X11Keymap() {
 
 Locale() {
     locale=$(cat /usr/share/aegis-tui/locales | gum filter --placeholder "select a locale")
-    # Using parameter expansion to remove everything after the space
-    locale="${locale%% *}"
 }
 
 Username() {
