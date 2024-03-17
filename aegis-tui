@@ -178,7 +178,7 @@ ManualDisk() {
         # 4. Ask what partition is what
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition"
-        efi_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
+        efi_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition mountpoint"
         efi_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
@@ -190,7 +190,7 @@ ManualDisk() {
 
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
-        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
+        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
         root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
@@ -205,7 +205,7 @@ ManualDisk() {
         gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
         if [[ $create_swap == "true" ]]; then
             gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
-            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
+            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
             partitions+=("none:/dev/$swap_part:linux-swap")
         fi
     else
@@ -234,7 +234,7 @@ ManualDisk() {
         # 4. Ask what partition is what
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
-        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
+        root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
         root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
@@ -249,7 +249,7 @@ ManualDisk() {
         gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
         if [[ $create_swap == "true" ]]; then
             gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
-            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//')
+            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
             partitions+=("none:/dev/$swap_part:linux-swap")
         fi
     fi
