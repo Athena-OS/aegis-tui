@@ -279,6 +279,7 @@ Partitioning() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
     partmode=$(gum choose --limit 1 Auto Manual)
+    encrypt_auto=false
 
     if [[ "$partmode" == "Auto" ]]; then
         AutoDisk
