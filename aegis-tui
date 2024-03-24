@@ -135,6 +135,22 @@ UEFICheck() {
     fi
 }
 
+LUKSCheck() {
+    part_att=$1
+    encrypt_check=false
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt the partiton?')" && encrypt_check=true
+    if [[ $encrypt_check == "true" ]]; then
+        check_luks=false
+        while [ "$check_luks" = false ]; do
+            clear
+            gum style --border normal --margin "1" --padding "1 2" "Please enter a passphrase"
+            secret-tool store --label="luks-encryption" luks-key $part_att
+            secret-tool lookup luks-key $part_att
+            gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Is the passphrase right?')" && check_luks=true
+        done
+    fi
+}
+
 AutoDisk() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
@@ -143,8 +159,7 @@ AutoDisk() {
     UEFICheck
     clear
     # Encryption
-    encrypt_auto=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt your partiton?')" && encrypt_auto=true
+    LUKSCheck "auto"
     clear
     # Swap partition
     create_swap=false
@@ -196,10 +211,9 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition file system"
         efi_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
         clear
-        encrypt_part=false
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt this partiton?')" && encrypt_part=true
+        LUKSCheck "$efi_part"
 
-        partitions+=("/mnt$efi_part_mount:/dev/$efi_part:$efi_part_fs:$encrypt_part")
+        partitions+=("/mnt$efi_part_mount:/dev/$efi_part:$efi_part_fs:$encrypt_check")
 
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
@@ -211,10 +225,9 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
         root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
         clear
-        encrypt_part=false
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt this partiton?')" && encrypt_part=true
+        LUKSCheck "$root_part"
 
-        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_part")
+        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_check")
     else
         # 2. Show what the user has to create like in arch wiki
         gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
@@ -247,10 +260,9 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
         root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
         clear
-        encrypt_part=false
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt this partiton?')" && encrypt_part=true
+        LUKSCheck "$root_part"
 
-        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_part")
+        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_check")
     fi
 
     clear
@@ -260,9 +272,9 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
         swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
-        encrypt_part=false
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt this partiton?')" && encrypt_part=true
-        partitions+=("none:/dev/$swap_part:linux-swap:$encrypt_part")
+        LUKSCheck "$swap_part"
+
+        partitions+=("none:/dev/$swap_part:linux-swap:$encrypt_check")
     fi
 
     for partition in "${partitions[@]}"; do
@@ -279,7 +291,7 @@ Partitioning() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
     partmode=$(gum choose --limit 1 Auto Manual)
-    encrypt_auto=false
+    encrypt_check=false
 
     if [[ "$partmode" == "Auto" ]]; then
         AutoDisk
@@ -389,7 +401,7 @@ Summary() {
         \"partition\": {
             \"device\": \"$disk_dev\",
             \"mode\": \"$partmode\",
-            \"encrypt_auto\": \"$encrypt_auto\",
+            \"encrypt_check\": \"$encrypt_check\",
             \"efi\": $is_uefi,
             \"swap\": $create_swap,
             \"swap_size\": \"$swap_size\",
