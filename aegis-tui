@@ -38,7 +38,7 @@ VirtKeymap() {
     if [[ "$baseos" == "Athena Arch" ]]; then
         virtkeymap=$(localectl list-keymaps | gum filter --placeholder "select a console keymap")
     elif [[ "$baseos" == "Athena Nix" ]]; then
-        virtkeymap=$(cat /usr/share/aegis-tui/keymaps | gum filter --placeholder "select a console keymap")
+        virtkeymap=$(cat ./keymaps | gum filter --placeholder "select a console keymap")
     fi
 }
 
@@ -47,7 +47,7 @@ X11Keymap() {
 }
 
 Locale() {
-    locale=$(cat /usr/share/aegis-tui/locales | gum filter --placeholder "select a locale")
+    locale=$(cat ./locales | gum filter --placeholder "select a locale")
 }
 
 Username() {
@@ -141,6 +141,18 @@ AutoDisk() {
     disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
     is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
     UEFICheck
+    clear
+    # Encryption
+    encrypt_auto=false
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt your partiton?')" && encrypt_auto=true
+    clear
+    # Swap partition
+    create_swap=false
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Create a swap partition?')" && create_swap=true
+    if [[ $create_swap == "true" ]]; then
+        gum style --border normal --margin "1" --padding "1 2" "Select a swap partition size"
+        swap_size=$(gum choose --limit 1 1GiB 2GiB 4GiB 8GiB)
+    fi
 }
 
 ManualDisk() {
@@ -171,8 +183,6 @@ ManualDisk() {
         # 3. Open cfdisk
         gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
         disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 )
-        clear
-        gum style --border normal --margin "1" --padding "1 2" "Password: athena"
         sudo cfdisk $disk_dev
 
         # 4. Ask what partition is what
@@ -185,29 +195,26 @@ ManualDisk() {
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition file system"
         efi_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
+        clear
+        encrypt_part=false
+        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt this partiton?')" && encrypt_part=true
 
-        partitions+=("/mnt$efi_part_mount:/dev/$efi_part:$efi_part_fs")
+        partitions+=("/mnt$efi_part_mount:/dev/$efi_part:$efi_part_fs:$encrypt_part")
 
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
         root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
-        root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
+        root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "/var")
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
         root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
-
-        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs")
-
         clear
-        create_swap=false
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
-        if [[ $create_swap == "true" ]]; then
-            gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
-            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
-            partitions+=("none:/dev/$swap_part:linux-swap")
-        fi
+        encrypt_part=false
+        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt this partiton?')" && encrypt_part=true
+
+        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_part")
     else
         # 2. Show what the user has to create like in arch wiki
         gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
@@ -227,8 +234,6 @@ ManualDisk() {
         # 3. Open cfdisk
         gum style --border normal --margin "1" --padding "1 2" "No need to create GRUB partition." "$(gum style 'It is created automatically in the boot sector.')" "$(gum style 'Please select the disk to partition')" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
         disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
-        clear
-        gum style --border normal --margin "1" --padding "1 2" "Password: athena"
         sudo cfdisk $disk_dev
 
         # 4. Ask what partition is what
@@ -237,21 +242,27 @@ ManualDisk() {
         root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
-        root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "var")
+        root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "/var")
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
         root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
-
-        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs")
-
         clear
-        create_swap=false
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
-        if [[ $create_swap == "true" ]]; then
-            gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
-            swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
-            partitions+=("none:/dev/$swap_part:linux-swap")
-        fi
+        encrypt_part=false
+        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt this partiton?')" && encrypt_part=true
+
+        partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_part")
+    fi
+
+    clear
+    create_swap=false
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
+    if [[ $create_swap == "true" ]]; then
+        gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
+        swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+        clear
+        encrypt_part=false
+        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt this partiton?')" && encrypt_part=true
+        partitions+=("none:/dev/$swap_part:linux-swap:$encrypt_part")
     fi
 
     for partition in "${partitions[@]}"; do
@@ -263,15 +274,6 @@ ManualDisk() {
     UEFICheck
 }
 
-Swap() {
-    clear
-    create_swap=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Create a swap partition?')" && create_swap=true
-    if [[ $create_swap == "true" ]]; then
-        gum style --border normal --margin "1" --padding "1 2" "Select a swap partition size"
-        swap_size=$(gum choose --limit 1 1GiB 2GiB 4GiB 8GiB)
-    fi
-}
     
 Partitioning() {
     clear
@@ -279,7 +281,6 @@ Partitioning() {
     partmode=$(gum choose --limit 1 Auto Manual)
 
     if [[ "$partmode" == "Auto" ]]; then
-        Swap
         AutoDisk
     elif [[ "$partmode" == "Manual" ]]; then
         ManualDisk
@@ -387,6 +388,7 @@ Summary() {
         \"partition\": {
             \"device\": \"$disk_dev\",
             \"mode\": \"$partmode\",
+            \"encrypt\": \"$encrypt_auto\",
             \"efi\": $is_uefi,
             \"swap\": $create_swap,
             \"swap_size\": \"$swap_size\",
