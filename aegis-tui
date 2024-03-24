@@ -38,7 +38,7 @@ VirtKeymap() {
     if [[ "$baseos" == "Athena Arch" ]]; then
         virtkeymap=$(localectl list-keymaps | gum filter --placeholder "select a console keymap")
     elif [[ "$baseos" == "Athena Nix" ]]; then
-        virtkeymap=$(cat ./keymaps | gum filter --placeholder "select a console keymap")
+        virtkeymap=$(cat /usr/share/aegis-tui/keymaps | gum filter --placeholder "select a console keymap")
     fi
 }
 
@@ -47,7 +47,7 @@ X11Keymap() {
 }
 
 Locale() {
-    locale=$(cat ./locales | gum filter --placeholder "select a locale")
+    locale=$(cat /usr/share/aegis-tui/locales | gum filter --placeholder "select a locale")
 }
 
 Username() {
