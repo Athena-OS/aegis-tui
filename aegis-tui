@@ -388,7 +388,7 @@ Summary() {
         \"partition\": {
             \"device\": \"$disk_dev\",
             \"mode\": \"$partmode\",
-            \"encrypt\": \"$encrypt_auto\",
+            \"encrypt_auto\": \"$encrypt_auto\",
             \"efi\": $is_uefi,
             \"swap\": $create_swap,
             \"swap_size\": \"$swap_size\",
