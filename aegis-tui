@@ -401,7 +401,7 @@ Summary() {
         \"partition\": {
             \"device\": \"$disk_dev\",
             \"mode\": \"$partmode\",
-            \"encrypt_check\": \"$encrypt_check\",
+            \"encrypt_check\": $encrypt_check,
             \"efi\": $is_uefi,
             \"swap\": $create_swap,
             \"swap_size\": \"$swap_size\",
