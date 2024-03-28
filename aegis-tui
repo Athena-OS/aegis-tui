@@ -53,9 +53,12 @@ Locale() {
 Username() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Please enter your username"
-    username=$(gum input --placeholder "Please enter your username")
+    username=$(gum input --placeholder "athena")
     # Remove spaces from the input string using parameter expansion
     username="${username// /}"
+    if [ -z "$username" ]; then
+        username="athena"
+    fi
 }
 
 Password() {
@@ -78,6 +81,10 @@ Password() {
             passwrong="true"
         fi
     done
+
+    if [ -z "$password" ]; then
+        password="athena"
+    fi
     hashed_password=$(openssl passwd -6 $password)
 }
 
@@ -108,6 +115,10 @@ RootPassword() {
             fi
         done
     fi
+
+    if [ -z "$root_password" ]; then
+        root_password="athena"
+    fi
     hashed_root_password=$(openssl passwd -6 ${root_password})
 }
 
@@ -120,9 +131,12 @@ Shell() {
 Hostname() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Please enter a hostname"
-    hostname=$(gum input --placeholder "Please enter a hostname")
+    hostname=$(gum input --placeholder "athenaos")
     # Remove spaces from the input string using parameter expansion
     hostname="${hostname// /}"
+    if [ -z "$hostname" ]; then
+        hostname="athenaos"
+    fi
 }
 
 UEFICheck() { 
@@ -136,7 +150,6 @@ UEFICheck() {
 }
 
 LUKSCheck() {
-    part_att=$1
     encrypt_check=false
     gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt the partiton?')" && encrypt_check=true
     if [[ $encrypt_check == "true" ]]; then
@@ -144,8 +157,9 @@ LUKSCheck() {
         while [ "$check_luks" = false ]; do
             clear
             gum style --border normal --margin "1" --padding "1 2" "Please enter a passphrase"
-            secret-tool store --label="luks-encryption" luks-key $part_att
-            secret-tool lookup luks-key $part_att
+            luks_passphrase=$(gum input --placeholder "Passphrase")
+            echo -n "$luks_passphrase"
+            echo -n "$luks_passphrase" > /tmp/luks
             gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Is the passphrase right?')" && check_luks=true
         done
     fi
@@ -159,7 +173,7 @@ AutoDisk() {
     UEFICheck
     clear
     # Encryption
-    LUKSCheck "auto"
+    LUKSCheck
     clear
     # Swap partition
     create_swap=false
@@ -211,7 +225,7 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition file system"
         efi_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
         clear
-        LUKSCheck "$efi_part"
+        LUKSCheck
 
         partitions+=("/mnt$efi_part_mount:/dev/$efi_part:$efi_part_fs:$encrypt_check")
 
@@ -225,7 +239,7 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
         root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
         clear
-        LUKSCheck "$root_part"
+        LUKSCheck
 
         partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_check")
     else
@@ -260,7 +274,7 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
         root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
         clear
-        LUKSCheck "$root_part"
+        LUKSCheck
 
         partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_check")
     fi
@@ -272,7 +286,7 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
         swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
-        LUKSCheck "$swap_part"
+        LUKSCheck
 
         partitions+=("none:/dev/$swap_part:linux-swap:$encrypt_check")
     fi
