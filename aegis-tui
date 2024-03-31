@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="1.0.0"
+version="1.0.1"
 
 main_color="#ffd700"
 warning_color="#ff0000"
@@ -149,18 +149,30 @@ UEFICheck() {
     fi
 }
 
+# Note that currently, only the root partition, in Auto or Manual mode, will be encrypted
 LUKSCheck() {
     encrypt_check=false
     gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt the partiton?')" && encrypt_check=true
     if [[ $encrypt_check == "true" ]]; then
-        check_luks=false
-        while [ "$check_luks" = false ]; do
+        matches="false"
+        passwrong="false"
+        while [[ "$matches" == "false" ]]; do
             clear
-            gum style --border normal --margin "1" --padding "1 2" "Please enter a passphrase"
-            luks_passphrase=$(gum input --placeholder "Passphrase")
-            echo -n "$luks_passphrase"
-            echo -n "$luks_passphrase" > /tmp/luks
-            gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Is the passphrase right?')" && check_luks=true
+            if [[ "$passwrong" == "true" ]]; then
+                gum style --border normal --margin "1" --padding "1 2" "Passphrases did not match, please type the passphrase again"
+            else
+                gum style --border normal --margin "1" --padding "1 2" "Now enter your passphrase"
+            fi
+            luks_passphrase=$(gum input --password --placeholder "Please enter a passphrase")
+            clear
+            gum style --border normal --margin "1" --padding "1 2" "Verify your passphrase"
+            passphrase_verif=$(gum input --password --placeholder "Type your passphrase again")
+            if [[ "$luks_passphrase" == "$passphrase_verif" ]]; then
+                matches="true"
+                echo -n "$luks_passphrase" > /tmp/luks
+            else
+                passwrong="true"
+            fi
         done
     fi
 }
@@ -217,17 +229,16 @@ ManualDisk() {
         # 4. Ask what partition is what
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition"
-        efi_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+        boot_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition mountpoint"
-        efi_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
+        boot_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition file system"
-        efi_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
+        boot_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
         clear
-        LUKSCheck
 
-        partitions+=("/mnt$efi_part_mount:/dev/$efi_part:$efi_part_fs:$encrypt_check")
+        partitions+=("/mnt$boot_part_mount:/dev/$boot_part:$boot_part_fs:false")
 
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
@@ -259,11 +270,24 @@ ManualDisk() {
         gum join --vertical "$PART_TABLE" "$SWAP_ROW" "$ROOT_ROW"
 
         # 3. Open cfdisk
-        gum style --border normal --margin "1" --padding "1 2" "No need to create GRUB partition." "$(gum style 'It is created automatically in the boot sector.')" "$(gum style 'Please select the disk to partition')" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
+        gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
         disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
         sudo cfdisk $disk_dev
 
         # 4. Ask what partition is what
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Select GRUB partition"
+        boot_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Select GRUB partition mountpoint"
+        boot_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
+        clear
+        gum style --border normal --margin "1" --padding "1 2" "Select GRUB partition file system"
+        boot_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
+        clear
+
+        partitions+=("/mnt$boot_part_mount:/dev/$boot_part:$boot_part_fs:false")
+
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition"
         root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
@@ -286,9 +310,8 @@ ManualDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
         swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
-        LUKSCheck
 
-        partitions+=("none:/dev/$swap_part:linux-swap:$encrypt_check")
+        partitions+=("none:/dev/$swap_part:linux-swap:false")
     fi
 
     for partition in "${partitions[@]}"; do
