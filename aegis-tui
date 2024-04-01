@@ -235,7 +235,7 @@ ManualDisk() {
         boot_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select EFI partition file system"
-        boot_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
+        boot_part_fs=$(gum choose --limit 1 "don't format" "fat" "vfat")
         clear
 
         partitions+=("/mnt$boot_part_mount:/dev/$boot_part:$boot_part_fs:false")
@@ -248,7 +248,7 @@ ManualDisk() {
         root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "/var")
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
-        root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
+        root_part_fs=$(gum choose --limit 1 "don't format" "btrfs" "ext4" "f2fs" "vfat" "xfs")
         clear
         LUKSCheck
 
@@ -283,7 +283,7 @@ ManualDisk() {
         boot_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select GRUB partition file system"
-        boot_part_fs=$(gum choose --limit 1 "none" "fat" "vfat")
+        boot_part_fs=$(gum choose --limit 1 "don't format" "fat" "vfat")
         clear
 
         partitions+=("/mnt$boot_part_mount:/dev/$boot_part:$boot_part_fs:false")
@@ -296,7 +296,7 @@ ManualDisk() {
         root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/boot/efi" "/home" "/opt" "/tmp" "/usr" "/var")
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
-        root_part_fs=$(gum choose --limit 1 "none" "btrfs" "ext4" "f2fs" "vfat" "xfs")
+        root_part_fs=$(gum choose --limit 1 "don't format" "btrfs" "ext4" "f2fs" "vfat" "xfs")
         clear
         LUKSCheck
 
