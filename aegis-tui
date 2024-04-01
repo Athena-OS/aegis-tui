@@ -283,7 +283,7 @@ ManualDisk() {
         boot_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "var")
         clear
         gum style --border normal --margin "1" --padding "1 2" "Select GRUB partition file system"
-        boot_part_fs=$(gum choose --limit 1 "don't format" "fat" "vfat")
+        boot_part_fs=$(gum choose --limit 1 "don't format" "ext4" "fat" "vfat")
         clear
 
         partitions+=("/mnt$boot_part_mount:/dev/$boot_part:$boot_part_fs:false")
