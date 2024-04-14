@@ -243,6 +243,8 @@ AutoDisk() {
 }
 
 ReplacePart() {
+    create_swap=false
+    encrypt_check=false
     
     RootPartSetting
     BootPartSetting
@@ -529,9 +531,9 @@ Desktop
 if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]]; then
     Shell
     Theme
-    Terminal
 fi
 DisplayManager
+Terminal
 Browser
 Misc
 Summary
