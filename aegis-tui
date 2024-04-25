@@ -230,9 +230,6 @@ AutoDisk() {
     is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
     UEFICheck
     clear
-    # Encryption
-    LUKSCheck
-    clear
     # Swap partition
     create_swap=false
     gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Create a swap partition?')" && create_swap=true
@@ -240,6 +237,9 @@ AutoDisk() {
         gum style --border normal --margin "1" --padding "1 2" "Select a swap partition size"
         swap_size=$(gum choose --limit 1 1GiB 2GiB 4GiB 8GiB)
     fi
+    clear
+    # Encryption
+    LUKSCheck
 }
 
 ReplacePart() {
