@@ -13,6 +13,9 @@ export GUM_INPUT_CURSOR_FOREGROUND="$main_color"
 export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
 export FOREGROUND="#ffffff"
 
+shell="none"
+theme="none"
+
 Welcome() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "Athena Arch or Athena Nix?"
@@ -359,9 +362,9 @@ DisplayManager() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a display manager to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
-        dm=$(gum choose --limit 1 gdm lightdm sddm)
+        dm=$(gum choose --limit 1 gdm 'lightdm neon' sddm)
     elif [[ "$baseos" == "Athena Nix" ]]; then
-        dm=$(gum choose --limit 1 gdm lightdm)
+        dm=$(gum choose --limit 1 gdm 'lightdm neon')
     fi
 }
 
