@@ -183,13 +183,13 @@ LUKSCheck() {
 RootPartSetting() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select root partition to replace"
-    root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+    root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
-    root_part_mount=$(gum choose --limit 1 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "/var")
+    root_part_mount=$(gum choose --limit 1 --height 20 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "/var")
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
-    root_part_fs=$(gum choose --limit 1 "don't format" "btrfs" "ext4" "f2fs" "vfat" "xfs")
+    root_part_fs=$(gum choose --limit 1 --height 20 "don't format" "btrfs" "ext4" "f2fs" "vfat" "xfs")
     clear
     LUKSCheck
 
@@ -201,7 +201,7 @@ BootPartSetting() {
 
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select existing boot partition"
-    boot_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+    boot_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select boot partition file system"
     if [[ $is_uefi == "true" ]]; then
@@ -219,7 +219,7 @@ SwapPartSetting() {
     gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
     if [[ $create_swap == "true" ]]; then
         gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
-        swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+        swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
         clear
 
         partitions+=("none:/dev/$swap_part:linux-swap:false")
@@ -346,7 +346,7 @@ Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
-        desktop=$(gum choose --limit 1 gnome cinnamon mate bspwm 'kde plasma' hyprland 'xfce refined' 'xfce picom')
+        desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate bspwm 'kde plasma' hyprland 'xfce refined' 'xfce picom')
     elif [[ "$baseos" == "Athena Nix" ]]; then
         desktop=$(gum choose --limit 1 gnome cinnamon mate)
     fi
@@ -355,7 +355,7 @@ Desktop() {
 Theme() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a theme to use"
-    theme=$(gum choose --limit 1 akame cyborg graphite hackthebox samurai sweet)
+    theme=$(gum choose --limit 1 --height 20 akame cyborg graphite hackthebox samurai sweet)
 }
 
 DisplayManager() {
@@ -382,7 +382,7 @@ Terminal() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a terminal to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
-        terminal=$(gum choose --limit 1 alacritty kitty 'cool retro term' foot 'gnome terminal' 'konsole' 'terminator' 'terminology' 'urxvt' 'xfce' 'xterm')
+        terminal=$(gum choose --limit 1 --height 20 alacritty kitty 'cool retro term' foot 'gnome terminal' 'konsole' 'terminator' 'terminology' 'urxvt' 'xfce' 'xterm')
     elif [[ "$baseos" == "Athena Nix" ]]; then
         terminal=$(gum choose --limit 1 alacritty kitty)
     fi
@@ -391,7 +391,7 @@ Terminal() {
 Misc() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Some miscellaneous settings" "Use space to enable/disable"
-    misc_settings=$(gum choose --limit 3 "Enable ipv6" "Enable zramd" "Enable flatpak")
+    misc_settings=$(gum choose --limit 3 --height 20 "Enable ipv6" "Enable zramd" "Enable flatpak")
     enable_ipv6="false"
     enable_zramd="false"
     enable_flatpak="false"
@@ -495,7 +495,11 @@ Summary() {
 
 Change() {
     gum style --border normal --margin '1' --padding '1 2' "What do you want to change?"
-    $(gum choose --limit 1 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Theme DisplayManager Browser Terminal Misc Exit)
+    if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]]; then
+        $(gum choose --limit 1 --height 25 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Theme DisplayManager Browser Terminal Misc Exit)
+    else
+        $(gum choose --limit 1 --height 25 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Hostname Partitioning Desktop DisplayManager Browser Terminal Misc Exit)
+    fi
     Summary
 }
 
