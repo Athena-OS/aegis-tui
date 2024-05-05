@@ -427,7 +427,7 @@ InstallParams() {
 Summary() {
     clear
     CONTINUE=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "console keymap: $virtkeymap" "GUI keymap: $x11keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "Default shell: $shell" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "desktop: $desktop" "theme: $theme" "display manager: $dm" "browser: $browser" "terminal: $terminal" "ipv6: $enable_ipv6" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "console keymap: $virtkeymap" "GUI keymap: $x11keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "shell: $shell" "desktop: $desktop" "theme: $theme" "display manager: $dm" "browser: $browser" "terminal: $terminal" "ipv6: $enable_ipv6" "enable zramd: $enable_zramd" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
