@@ -440,56 +440,56 @@ Summary() {
         fi
         # Make config.json
         echo "{
-        \"partition\": {
-            \"device\": \"$disk_dev\",
-            \"mode\": \"$partmode\",
-            \"encrypt_check\": $encrypt_check,
-            \"efi\": $is_uefi,
-            \"swap\": $create_swap,
-            \"swap_size\": \"$swap_size\",
-            \"partitions\": [$partitions_setup]
-        },
-        \"bootloader\": {
-            \"type\": \"$grub_type\",
-            \"location\": \"$grub_location\"
-        },
-        \"locale\": {
-            \"locale\": [
-                \"$locale\"
-            ],
-            \"virtkeymap\": \"$virtkeymap\",
-            \"x11keymap\": \"$x11keymap\",
-            \"timezone\": \"$timezone\"
-        },
-        \"networking\": {
-            \"hostname\": \"$hostname\",
-            \"ipv6\": $enable_ipv6
-        },
-        \"users\": [
-            {
-                \"name\": \"$username\",
-                \"password\": \"$hashed_password\",
-                \"hasroot\": true,
-                \"shell\": \"$shell\"
-            }
+    \"partition\": {
+        \"device\": \"$disk_dev\",
+        \"mode\": \"$partmode\",
+        \"encrypt_check\": $encrypt_check,
+        \"efi\": $is_uefi,
+        \"swap\": $create_swap,
+        \"swap_size\": \"$swap_size\",
+        \"partitions\": [$partitions_setup]
+    },
+    \"bootloader\": {
+        \"type\": \"$grub_type\",
+        \"location\": \"$grub_location\"
+    },
+    \"locale\": {
+        \"locale\": [
+            \"$locale\"
         ],
-        \"rootpass\": \"$hashed_root_password\",
-        \"desktop\": \"$desktop\",
-        \"theme\": \"$theme\",
-        \"displaymanager\": \"$dm\",
-        \"browser\": \"$browser\",
-        \"terminal\": \"$terminal\",
-        \"extra_packages\": [
-        
-        ],
-        \"flatpak\": $enable_flatpak,
-        \"zramd\": $enable_zramd,
-        \"kernel\": \"linux-lts\",
-        \"params\": {
-            \"cores\": \"$cores\",
-            \"jobs\": \"$jobs\"
+        \"virtkeymap\": \"$virtkeymap\",
+        \"x11keymap\": \"$x11keymap\",
+        \"timezone\": \"$timezone\"
+    },
+    \"networking\": {
+        \"hostname\": \"$hostname\",
+        \"ipv6\": $enable_ipv6
+    },
+    \"users\": [
+        {
+            \"name\": \"$username\",
+            \"password\": \"$hashed_password\",
+            \"hasroot\": true,
+            \"shell\": \"$shell\"
         }
-    }" > /tmp/config.json
+    ],
+    \"rootpass\": \"$hashed_root_password\",
+    \"desktop\": \"$desktop\",
+    \"theme\": \"$theme\",
+    \"displaymanager\": \"$dm\",
+    \"browser\": \"$browser\",
+    \"terminal\": \"$terminal\",
+    \"extra_packages\": [
+    
+    ],
+    \"flatpak\": $enable_flatpak,
+    \"zramd\": $enable_zramd,
+    \"kernel\": \"linux-lts\",
+    \"params\": {
+        \"cores\": \"$cores\",
+        \"jobs\": \"$jobs\"
+    }
+}" > /tmp/config.json
     fi
 }
 
