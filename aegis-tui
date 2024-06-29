@@ -358,7 +358,7 @@ Desktop() {
 Theme() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a theme to use"
-    theme=$(gum choose --limit 1 --height 20 akame cyborg graphite hackthebox samurai sweet)
+    theme=$(gum choose --limit 1 --height 20 akame cyborg graphite hackthebox samurai sweet temple)
 }
 
 DisplayManager() {
