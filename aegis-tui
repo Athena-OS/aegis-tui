@@ -517,6 +517,26 @@ Install() {
         elif [[ "$baseos" == "Athena Nix" ]]; then
             sudo aegis-nix config /tmp/config.json
         fi
+        # Capture the exit code of last command
+        exit_code=$?
+
+        # Check if the command failed
+        if [ $exit_code -ne 0 ]; then
+            # Ask the user if they want to generate logs
+            read -p "Do you want to generate logs of the failed install to communicate to the team? (Y/n) " response
+
+            # Default to 'Y' if the user just presses enter
+            response=${response:-Y}
+
+            # Check if the response is 'Y' or 'y'
+            if [[ $response =~ ^[Yy]$ ]]; then
+                # Run the log commands
+                echo "Generating logs..."
+                install-logs
+                config-logs
+                echo "Logs generated."
+            fi
+        fi
     fi
 }
 
