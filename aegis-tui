@@ -13,6 +13,9 @@ export GUM_INPUT_CURSOR_FOREGROUND="$main_color"
 export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
 export FOREGROUND="#ffffff"
 
+shopt -s expand_aliases
+source ~/.bash_aliases
+
 shell="none"
 theme="none"
 
