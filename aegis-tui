@@ -16,6 +16,7 @@ export FOREGROUND="#ffffff"
 shopt -s expand_aliases
 source ~/.bash_aliases
 
+desktop="none"
 shell="none"
 theme="none"
 
@@ -352,9 +353,9 @@ Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
-        desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate bspwm 'kde plasma' hyprland 'xfce refined' 'xfce picom')
+        desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate bspwm 'kde plasma' hyprland 'xfce refined' 'xfce picom' none)
     elif [[ "$baseos" == "Athena Nix" ]]; then
-        desktop=$(gum choose --limit 1 gnome cinnamon mate)
+        desktop=$(gum choose --limit 1 gnome cinnamon mate none)
     fi
 }
 
@@ -561,13 +562,15 @@ Hostname
 UEFICheck
 Partitioning
 Desktop
-if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]]; then
+if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]] && [[ "$desktop" != "none" ]]; then
     Shell
     Theme
 fi
-DisplayManager
-Terminal
-Browser
+if [[ "$desktop" != "none" ]]; then
+    DisplayManager
+    Terminal
+    Browser
+fi
 Misc
 Summary
 Install
