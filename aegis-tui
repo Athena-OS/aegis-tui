@@ -536,8 +536,7 @@ Install() {
             if [[ $response =~ ^[Yy]$ ]]; then
                 # Run the log commands
                 echo "Generating logs..."
-                install-logs
-                config-logs
+                cat /tmp/aegis.log | nc termbin.com 9999
                 echo "Logs generated."
             fi
         fi
