@@ -491,7 +491,7 @@ Summary() {
     ],
     \"flatpak\": $enable_flatpak,
     \"zramd\": $enable_zramd,
-    \"kernel\": \"linux-lts\",
+    \"kernel\": \"linux lts\",
     \"params\": {
         \"cores\": \"$cores\",
         \"jobs\": \"$jobs\"
