@@ -159,7 +159,7 @@ UEFICheck() {
     fi
 }
 
-# Note that currently, only the root partition, in Auto or Manual mode, will be encrypted
+# Note that currently, only the root partition, in Erase Disk or Manual mode, will be encrypted
 LUKSCheck() {
     encrypt_check=false
     gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt the partiton?')" && encrypt_check=true
@@ -233,7 +233,7 @@ SwapPartSetting() {
     fi
 }
 
-AutoDisk() {
+EraseDisk() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
     disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
@@ -337,11 +337,11 @@ ManualDisk() {
 Partitioning() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
-    partmode=$(gum choose --limit 1 Auto Replace Manual)
+    partmode=$(gum choose --limit 1 "Erase Disk" Replace Manual)
     encrypt_check=false
 
-    if [[ "$partmode" == "Auto" ]]; then
-        AutoDisk
+    if [[ "$partmode" == "Erase Disk" ]]; then
+        EraseDisk
     elif [[ "$partmode" == "Replace" ]]; then
         ReplacePart
     elif [[ "$partmode" == "Manual" ]]; then
