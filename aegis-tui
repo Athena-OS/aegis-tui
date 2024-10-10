@@ -341,6 +341,7 @@ Partitioning() {
     encrypt_check=false
 
     if [[ "$partmode" == "Erase Disk" ]]; then
+        partmode="EraseDisk"
         EraseDisk
     elif [[ "$partmode" == "Replace" ]]; then
         ReplacePart
