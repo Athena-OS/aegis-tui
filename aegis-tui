@@ -4,8 +4,7 @@ version="1.0.1"
 
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
-  echo "You must be root to perform this operation."
-  exit 1
+  exec sudo -s "$0" "$@"
 fi
 
 main_color="#ffd700"
