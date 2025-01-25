@@ -376,9 +376,10 @@ DisplayManager() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a display manager to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
-        dm=$(gum choose --limit 1 Astronaut 'Black Hole' Cyberpunk Japan 'Jake The Dog' Kath 'Pixel Sakura' 'Post-Apocalypse' 'Purple Leaves')
+        dm=$(gum choose --limit 1 Astronaut 'Black Hole' Cyberpunk Cyborg 'Jake The Dog' Kath 'Pixel Sakura' 'Post-Apocalypse' 'Purple Leaves')
     elif [[ "$baseos" == "Athena Nix" ]]; then
-        dm=$(gum choose --limit 1 gdm 'lightdm neon')
+        #dm=$(gum choose --limit 1 gdm 'lightdm neon' sddm)
+        dm="sddm"
     fi
 }
 
