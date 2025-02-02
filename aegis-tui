@@ -22,6 +22,7 @@ export FOREGROUND="#ffffff"
 shopt -s expand_aliases
 source ~/.bash_aliases
 
+browser="none"
 desktop="none"
 shell="none"
 theme="none"
