@@ -206,8 +206,8 @@ RootPartSetting() {
     root_part_fs=$(gum choose --limit 1 --height 20 "don't format" "btrfs" "ext4" "f2fs" "vfat" "xfs")
     clear
     LUKSCheck
-
-    partitions+=("/mnt$root_part_mount:$root_part:$root_part_fs:$encrypt_check")
+    # type:mount_point:blockdevice:filesystem:encrypt_bool
+    partitions+=("root:/mnt$root_part_mount:$root_part:$root_part_fs:$encrypt_check")
 }
 
 BootPartSetting() {
@@ -224,7 +224,7 @@ BootPartSetting() {
         boot_part_fs=$(gum choose --limit 1 "don't format" "ext4" "fat" "vfat")
     fi
     
-    partitions+=("/mnt/boot:$boot_part:$boot_part_fs:false")
+    partitions+=("boot:/mnt/boot:$boot_part:$boot_part_fs:false")
 }
 
 SwapPartSetting() {
@@ -236,7 +236,7 @@ SwapPartSetting() {
         swap_part=$(lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g' | gum choose --limit 1 --height 20 | awk '{print "/dev/"$2}')
         clear
 
-        partitions+=("none:$swap_part:linux-swap:false")
+        partitions+=("swap:none:$swap_part:linux-swap:false")
     fi
 }
 
