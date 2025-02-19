@@ -162,7 +162,7 @@ UEFICheck() {
         grub_location="/boot"
     else
         grub_type="grub-legacy"
-        grub_location="$disk_dev"
+        grub_location="$grub_disk"
     fi
 }
 
@@ -197,6 +197,7 @@ LUKSCheck() {
 RootPartSetting() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select root partition to replace"
+    read -r disk_dev root_part < <(lsblk -no PKNAME,NAME | grep -v zram | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | sed 's/├─//;s/└─//;s/|-//;s/`-//')
     root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
@@ -215,7 +216,7 @@ BootPartSetting() {
 
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select existing boot partition"
-    boot_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+    read -r grub_disk boot_part < <(lsblk -no PKNAME,NAME | grep -v zram | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | sed 's/├─//;s/└─//;s/|-//;s/`-//')
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select boot partition file system"
     if [[ $is_uefi == "true" ]]; then
@@ -244,6 +245,7 @@ EraseDisk() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
     disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
+    grub_disk=$disk_dev
     is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
     UEFICheck
     clear
@@ -321,8 +323,8 @@ ManualDisk() {
     disk_check="true"
     while [[ "$disk_check" == "true" ]]; do
         gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erase all the partitions you will write on')"
-        disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 )
-        sudo cfdisk $disk_dev
+        disk_selection=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 )
+        sudo cfdisk $disk_selection
         clear
         gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you need still to partition a disk?')" && disk_check=true || disk_check=false
     done
