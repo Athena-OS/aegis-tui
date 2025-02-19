@@ -233,10 +233,10 @@ SwapPartSetting() {
     gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
     if [[ $create_swap == "true" ]]; then
         gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
-        swap_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+        swap_part=$(lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g' | gum choose --limit 1 --height 20 | awk '{print "/dev/"$2}')
         clear
 
-        partitions+=("none:/dev/$swap_part:linux-swap:false")
+        partitions+=("none:$swap_part:linux-swap:false")
     fi
 }
 
