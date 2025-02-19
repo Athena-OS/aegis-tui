@@ -197,8 +197,7 @@ LUKSCheck() {
 RootPartSetting() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select root partition to replace"
-    read -r disk_dev root_part < <(lsblk -no PKNAME,NAME | grep -v zram | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | sed 's/├─//;s/└─//;s/|-//;s/`-//')
-    root_part=$(lsblk | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | awk '{print $1}' | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+    read -r disk_dev root_part _ < <(lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g' | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
     root_part_mount=$(gum choose --limit 1 --height 20 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "/var")
@@ -208,7 +207,7 @@ RootPartSetting() {
     clear
     LUKSCheck
 
-    partitions+=("/mnt$root_part_mount:/dev/$root_part:$root_part_fs:$encrypt_check")
+    partitions+=("/mnt$root_part_mount:$root_part:$root_part_fs:$encrypt_check")
 }
 
 BootPartSetting() {
@@ -216,7 +215,7 @@ BootPartSetting() {
 
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select existing boot partition"
-    read -r grub_disk boot_part < <(lsblk -no PKNAME,NAME | grep -v zram | grep -v loop | grep -v sr | gum choose --limit 1 --height 20 | sed 's/├─//;s/└─//;s/|-//;s/`-//')
+    read -r grub_disk boot_part _ < <(lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g' | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select boot partition file system"
     if [[ $is_uefi == "true" ]]; then
@@ -225,7 +224,7 @@ BootPartSetting() {
         boot_part_fs=$(gum choose --limit 1 "don't format" "ext4" "fat" "vfat")
     fi
     
-    partitions+=("/mnt/boot:/dev/$boot_part:$boot_part_fs:false")
+    partitions+=("/mnt/boot:$boot_part:$boot_part_fs:false")
 }
 
 SwapPartSetting() {
