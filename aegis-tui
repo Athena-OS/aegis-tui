@@ -29,10 +29,10 @@ theme="none"
 
 Welcome() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "Athena Arch or Athena Nix?"
-    baseos=$(gum choose --limit 1 'Athena Arch' 'Athena Nix')
+    gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "Athena Fedora or Athena Nix?"
+    baseos=$(gum choose --limit 1 'Athena Fedora' 'Athena Nix')
 
-    if [[ "$baseos" == "Athena Arch" ]]; then
+    if [[ "$baseos" == "Athena Fedora" ]]; then
         osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA52TUQ6EIAxE/z0FRyWuGg+waTRovFtPIilxV2Va0H7SmddCi3MwmLpGy2xMI9OM80d6NERXjaFEQl3O1DJ9mTzTUuk5FejFviJvbtQbqyj7xIwRzwmQ8xaDYCVWkLloowFEExgOjUY7o+zW/qqKtoovptIG2bCO6RP3rKnm/a5qXfbWpgJNz+/vm5SOddyVFqWTwyGfx+cEAYSsMvCn7Yi2HWcEzBuVBAAA" | gunzip)")
     elif [[ "$baseos" == "Athena Nix" ]]; then
         osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA6WUzQ3DIAyF70zBqDnkkAncWjTqbkzSSlCw8U+tJPIFw/sQz45znl+FR4W9hZLqWbKGlJn8VeH4BVrZCm+SKAwRY7iEEEKKOTMeKMllAjHdo+t34ILE1cOd1sizxnNy2bM8Lh7EY3SKpo/ZteJiPmMym+E+nL1/fXzrCBdqtCPzCAN64bv+U7SjZ4VtxACQAmepDzj416BeftXaizeIaaJWzBgrXveH5pLb+RcIszBtvZF4jlMz9VV/AOenEZ3PBQAA" | gunzip)")
@@ -49,7 +49,7 @@ Timezone() {
 }
 
 VirtKeymap() {
-    if [[ "$baseos" == "Athena Arch" ]]; then
+    if [[ "$baseos" == "Athena Fedora" ]]; then
         virtkeymap=$(localectl list-keymaps | gum filter --placeholder "select a console keymap")
     elif [[ "$baseos" == "Athena Nix" ]]; then
         virtkeymap=$(cat /usr/share/aegis-tui/keymaps | gum filter --placeholder "select a console keymap")
@@ -362,7 +362,8 @@ Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
-        desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate bspwm 'kde plasma' hyprland 'xfce refined' 'xfce picom' none)
+        #desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate bspwm 'kde plasma' hyprland 'xfce refined' 'xfce picom' none)
+        desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate 'kde plasma' 'xfce refined' none)
     elif [[ "$baseos" == "Athena Nix" ]]; then
         desktop=$(gum choose --limit 1 gnome cinnamon mate)
     fi
@@ -448,9 +449,9 @@ Summary() {
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
-        if [[ "$baseos" == "Athena Nix" ]]; then
-            InstallParams
-        fi
+        #if [[ "$baseos" == "Athena Nix" ]]; then
+        #    InstallParams
+        #fi
         # Remove config.json if it exists
         if [[ $(ls | grep "/tmp/config.json") ]]; then
             rm /tmp/config.json
@@ -494,17 +495,17 @@ Summary() {
     \"desktop\": \"$desktop\",
     \"theme\": \"$theme\",
     \"displaymanager\": \"$dm\",
-    \"browser\": \"$browser\",
-    \"terminal\": \"$terminal\",
+    \"browser\": \"firefox\",
+    \"terminal\": \"kitty\",
     \"extra_packages\": [
     
     ],
     \"flatpak\": $enable_flatpak,
     \"zramd\": $enable_zramd,
-    \"kernel\": \"linux lts\",
+    \"kernel\": \"linux\",
     \"params\": {
-        \"cores\": \"$cores\",
-        \"jobs\": \"$jobs\"
+        \"cores\": \"0\",
+        \"jobs\": \"32\"
     }
 }" > /tmp/config.json
     fi
@@ -526,8 +527,8 @@ Install() {
     if [[ $CONTINUE != "true" ]]; then
         Exit
     else
-        if [[ "$baseos" == "Athena Arch" ]]; then
-            sudo aegis-arch config /tmp/config.json
+        if [[ "$baseos" == "Athena Fedora" ]]; then
+            sudo aegis-fedora config /tmp/config.json
         elif [[ "$baseos" == "Athena Nix" ]]; then
             sudo aegis-nix config /tmp/config.json
         fi
@@ -575,12 +576,12 @@ if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]] && [[ "$desktop
     Shell
     Theme
 fi
-if [[ "$desktop" != "none" ]] && [[ "$desktop" != "hyprland" ]]; then
-    Browser
-fi
+#if [[ "$desktop" != "none" ]] && [[ "$desktop" != "hyprland" ]]; then
+#    Browser
+#fi
 if [[ "$desktop" != "none" ]]; then
     DisplayManager
-    Terminal
+#    Terminal
 fi
 Misc
 Summary
