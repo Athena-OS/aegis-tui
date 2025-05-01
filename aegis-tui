@@ -361,7 +361,7 @@ Partitioning() {
 Desktop() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
-    if [[ "$baseos" == "Athena Arch" ]]; then
+    if [[ "$baseos" == "Athena Fedora" ]]; then
         #desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate bspwm 'kde plasma' hyprland 'xfce refined' 'xfce picom' none)
         desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate 'kde plasma' 'xfce refined' none)
     elif [[ "$baseos" == "Athena Nix" ]]; then
@@ -378,7 +378,7 @@ Theme() {
 DisplayManager() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a display manager to use"
-    if [[ "$baseos" == "Athena Arch" ]]; then
+    if [[ "$baseos" == "Athena Fedora" ]]; then
         dm=$(gum choose --limit 1 Astronaut 'Black Hole' Cyberpunk Cyborg 'Jake The Dog' Kath 'Pixel Sakura' 'Post-Apocalypse' 'Purple Leaves')
     elif [[ "$baseos" == "Athena Nix" ]]; then
         #dm=$(gum choose --limit 1 gdm 'lightdm neon' sddm)
@@ -389,7 +389,7 @@ DisplayManager() {
 Browser() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a browser to use"
-    if [[ "$baseos" == "Athena Arch" ]]; then
+    if [[ "$baseos" == "Athena Fedora" ]]; then
         browser=$(gum choose --limit 1 firefox brave)
     elif [[ "$baseos" == "Athena Nix" ]]; then
         browser=$(gum choose --limit 1 firefox)
@@ -399,7 +399,7 @@ Browser() {
 Terminal() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select a terminal to use"
-    if [[ "$baseos" == "Athena Arch" ]]; then
+    if [[ "$baseos" == "Athena Fedora" ]]; then
         terminal=$(gum choose --limit 1 --height 20 alacritty kitty 'cool retro term' foot 'gnome terminal' 'konsole' 'terminator' 'terminology' 'urxvt' 'xfce' 'xterm')
     elif [[ "$baseos" == "Athena Nix" ]]; then
         terminal=$(gum choose --limit 1 alacritty kitty)
