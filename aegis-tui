@@ -32,7 +32,7 @@ Welcome() {
     baseos=$(gum choose --limit 1 'Athena Fedora' 'Athena Nix')
 
     if [[ "$baseos" == "Athena Fedora" ]]; then
-        osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAO8jFWgC/+NSwA4eTevARDBJLuK1YDWBiyjduEUJGoBLjIr6cASNAn5X4tKFNWRRVRITsChmENBAZFwhG0lIPWnm4Q9BAmGEXcUg1opDFZEJgpi8hcMERJoiVSNqckRTzgUAcaxPaDoEAAA=" | gunzip)")
+        osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA1NQwA0eTevARDBJLhL1YTUGpyHYNeAwhihTcInRRDOOMFMgwtG4tMIApj5U5cQEO6ZBBHQRGZ0Y5hLSRIah+IOWmHDDrmzo6MehlJSEQzA+cRuDlgBJ1Y0lAaPp4VLgAgB3dMt2lQQAAA==" | gunzip)")
     elif [[ "$baseos" == "Athena Nix" ]]; then
         osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA6WUzQ3DIAyF70zBqDnkkAncWjTqbkzSSlCw8U+tJPIFw/sQz45znl+FR4W9hZLqWbKGlJn8VeH4BVrZCm+SKAwRY7iEEEKKOTMeKMllAjHdo+t34ILE1cOd1sizxnNy2bM8Lh7EY3SKpo/ZteJiPmMym+E+nL1/fXzrCBdqtCPzCAN64bv+U7SjZ4VtxACQAmepDzj416BeftXaizeIaaJWzBgrXveH5pLb+RcIszBtvZF4jlMz9VV/AOenEZ3PBQAA" | gunzip)")
     fi
