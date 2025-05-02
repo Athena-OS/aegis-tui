@@ -20,7 +20,6 @@ export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
 export FOREGROUND="#ffffff"
 
 shopt -s expand_aliases
-source ~/.bash_aliases
 
 browser="none"
 desktop="none"
