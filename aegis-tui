@@ -21,6 +21,7 @@ export FOREGROUND="#ffffff"
 
 shopt -s expand_aliases
 
+virtkeymap="us"
 browser="firefox"
 terminal="kitty"
 desktop="none"
@@ -558,7 +559,7 @@ Exit() {
 
 Welcome
 Timezone
-VirtKeymap
+#VirtKeymap # in console 'us' will be default
 X11Keymap
 Locale
 Username
