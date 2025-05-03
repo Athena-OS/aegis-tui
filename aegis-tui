@@ -103,7 +103,7 @@ Password() {
     if [ -z "$password" ]; then
         password="athena"
     fi
-    hashed_password=$(openssl passwd -6 $password)
+    hashed_password=$(mkpasswd $password) # yescrypt hash algorithm
 }
 
 RootPassword() {
@@ -137,7 +137,7 @@ RootPassword() {
     if [ -z "$root_password" ]; then
         root_password="athena"
     fi
-    hashed_root_password=$(openssl passwd -6 ${root_password})
+    hashed_root_password=$(mkpasswd ${root_password})
 }
 
 Shell() {
