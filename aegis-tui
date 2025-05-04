@@ -60,8 +60,6 @@ VirtKeymap() {
 X11Keymap() {
     x11keymap=$(localectl list-x11-keymap-layouts | gum filter --placeholder "select a GUI keymap")
     setxkbmap "$x11keymap" 2> /dev/null
-    echo -e "\nKeyboard layout set to '$x11keymap'"
-    sleep 3
 }
 
 Locale() {
