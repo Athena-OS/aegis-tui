@@ -158,7 +158,7 @@ Hostname() {
 UEFICheck() { 
     if [[ $is_uefi == "true" ]]; then
         grub_type="grub-efi"
-        grub_location="/boot"
+        grub_location="/boot/efi"
     else
         grub_type="grub-legacy"
         grub_location="$grub_disk"
@@ -215,15 +215,18 @@ BootPartSetting() {
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select existing boot partition"
     read -r grub_disk boot_part _ < <(lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g' | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
+    
     clear
     gum style --border normal --margin "1" --padding "1 2" "Select boot partition file system"
     if [[ $is_uefi == "true" ]]; then
         boot_part_fs=$(gum choose --limit 1 "don't format" "fat" "vfat")
+        boot_part_mount="/boot/efi"
     else
         boot_part_fs=$(gum choose --limit 1 "don't format" "ext4" "fat" "vfat")
+        boot_part_mount="/boot"
     fi
-    
-    partitions+=("boot:/mnt/boot:$boot_part:$boot_part_fs:false")
+
+    partitions+=("boot:$boot_part_mount:$boot_part:$boot_part_fs:false")
 }
 
 SwapPartSetting() {
