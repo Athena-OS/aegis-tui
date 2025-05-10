@@ -226,7 +226,7 @@ BootPartSetting() {
         boot_part_mount="/boot"
     fi
 
-    partitions+=("boot:$boot_part_mount:$boot_part:$boot_part_fs:false")
+    partitions+=("boot:/mnt$boot_part_mount:$boot_part:$boot_part_fs:false")
 }
 
 SwapPartSetting() {
