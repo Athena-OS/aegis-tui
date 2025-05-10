@@ -158,7 +158,7 @@ Hostname() {
 UEFICheck() { 
     if [[ $is_uefi == "true" ]]; then
         grub_type="grub-efi"
-        grub_location="/boot/efi"
+        grub_location="/mnt/boot/efi"
     else
         grub_type="grub-legacy"
         grub_location="$grub_disk"
