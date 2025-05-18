@@ -26,7 +26,7 @@ browser="firefox"
 terminal="kitty"
 desktop="none"
 shell="none"
-theme="none"
+design="none"
 
 Welcome() {
     clear
@@ -371,10 +371,10 @@ Desktop() {
     fi
 }
 
-Theme() {
+Design() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a theme to use"
-    theme=$(gum choose --limit 1 --height 20 cyborg graphite hackthebox redmoon samurai sweet temple)
+    gum style --border normal --margin "1" --padding "1 2" "Select a design to use"
+    design=$(gum choose --limit 1 --height 20 cyborg graphite hackthebox redmoon samurai sweet temple)
 }
 
 DisplayManager() {
@@ -443,7 +443,7 @@ InstallParams() {
 Summary() {
     clear
     CONTINUE=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "console keymap: $virtkeymap" "GUI keymap: $x11keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "shell: $shell" "desktop: $desktop" "theme: $theme" "display manager: $dm" "browser: $browser" "terminal: $terminal" "ipv6: $enable_ipv6" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
+    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "console keymap: $virtkeymap" "GUI keymap: $x11keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "shell: $shell" "desktop: $desktop" "design: $design" "display manager: $dm" "browser: $browser" "terminal: $terminal" "ipv6: $enable_ipv6" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
     if [[ $CONTINUE != "true" ]]; then
         Change
     else
@@ -491,7 +491,7 @@ Summary() {
     ],
     \"rootpass\": \"$hashed_root_password\",
     \"desktop\": \"$desktop\",
-    \"theme\": \"$theme\",
+    \"design\": \"$design\",
     \"displaymanager\": \"$dm\",
     \"browser\": \"$browser\",
     \"terminal\": \"$terminal\",
@@ -512,7 +512,7 @@ Summary() {
 Change() {
     gum style --border normal --margin '1' --padding '1 2' "What do you want to change?"
     if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]]; then
-        $(gum choose --limit 1 --height 25 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Theme DisplayManager Browser Terminal Misc Exit)
+        $(gum choose --limit 1 --height 25 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Design DisplayManager Browser Terminal Misc Exit)
     else
         $(gum choose --limit 1 --height 25 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Hostname Partitioning Desktop DisplayManager Browser Terminal Misc Exit)
     fi
@@ -572,7 +572,7 @@ Partitioning
 Desktop
 if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]] && [[ "$desktop" != "none" ]]; then
     Shell
-    Theme
+    Design
 fi
 #if [[ "$desktop" != "none" ]] && [[ "$desktop" != "hyprland" ]]; then
 #    Browser
