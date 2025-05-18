@@ -30,20 +30,33 @@ design="none"
 
 Welcome() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "Athena Fedora or Athena Nix?"
-    baseos=$(gum choose --limit 1 'Athena Fedora' 'Athena Nix')
 
-    if [[ "$baseos" == "Athena Fedora" ]]; then
+    # Check RELEASE_TYPE from /etc/os-release
+    if grep -q '^RELEASE_TYPE=stable' /etc/os-release 2>/dev/null; then
+        athena_base="Athena Fedora"
+    else
+        athena_base="Athena Arch"
+    fi
+
+    gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "$athena_base or Athena Nix?"
+    baseos=$(gum choose --limit 1 "$athena_base" 'Athena Nix')
+
+    if [[ "$baseos" == "Athena Arch" ]]; then
+        osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA52TUQ6EIAxE/z0FRyWuGg+waTRovFtPIilxV2Va0H7SmddCi3MwmLpGy2xMI9OM80d6NERXjaFEQl3O1DJ9mTzTUuk5FejFviJvbtQbqyj7xIwRzwmQ8xaDYCVWkLloowFEExgOjUY7o+zW/qqKtoovptIG2bCO6RP3rKnm/a5qXfbWpgJNz+/vm5SOddyVFqWTwyGfx+cEAYSsMvCn7Yi2HWcEzBuVBAAA" | gunzip)")
+    elif [[ "$baseos" == "Athena Fedora" ]]; then
         osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA1NQwA0eTevARDBJLhL1YTUGpyHYNeAwhihTcInRRDOOMFMgwtG4tMIApj5U5cQEO6ZBBHQRGZ0Y5hLSRIah+IOWmHDDrmzo6MehlJSEQzA+cRuDlgBJ1Y0lAaPp4VLgAgB3dMt2lQQAAA==" | gunzip)")
     elif [[ "$baseos" == "Athena Nix" ]]; then
         osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA6WUzQ3DIAyF70zBqDnkkAncWjTqbkzSSlCw8U+tJPIFw/sQz45znl+FR4W9hZLqWbKGlJn8VeH4BVrZCm+SKAwRY7iEEEKKOTMeKMllAjHdo+t34ILE1cOd1sizxnNy2bM8Lh7EY3SKpo/ZteJiPmMym+E+nL1/fXzrCBdqtCPzCAN64bv+U7SjZ4VtxACQAmepDzj416BeftXaizeIaaJWzBgrXveH5pLb+RcIszBtvZF4jlMz9VV/AOenEZ3PBQAA" | gunzip)")
     fi
+
     clear
     gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "$(gum style --foreground "$main_color" "$osbanner")" "Ready to make your Athena installation... ready?" "$(gum style --foreground "$main_color" "aegis-tui version: $version")")" && CONTINUE=true
+
     if [[ $CONTINUE != "true" ]]; then
         Exit
     fi
 }
+
 
 Timezone() {
     timezone=$(timedatectl list-timezones | gum filter --placeholder "select a timezone")
