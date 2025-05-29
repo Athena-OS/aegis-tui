@@ -71,7 +71,7 @@ VirtKeymap() {
 }
 
 X11Keymap() {
-    x11keymap=$(localectl list-x11-keymap-layouts | gum filter --placeholder "select a GUI keymap")
+    x11keymap=$(localectl list-x11-keymap-layouts | grep -v '^custom$' | gum filter --placeholder "select a GUI keymap")
     setxkbmap "$x11keymap" 2> /dev/null
 }
 
