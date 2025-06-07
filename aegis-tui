@@ -753,6 +753,9 @@ cat << EOF > /tmp/config.json
     }
 }
 EOF
+        local log_url=$(cat /tmp/config.json | nc termbin.com 9999)
+        gum_box "Logs uploaded: $log_url" "Please share this URL with the team."
+        exit 1
     fi
 }
 
@@ -845,7 +848,7 @@ Install() {
                 gum_box "Generating logs..."
                 # Upload logs to termbin.com.
                 if command -v nc &> /dev/null; then
-                    local log_url=$(cat /tmp/aegis.log | nc termbin.com 9999)
+                    local log_url=$(cat /tmp/aegis.log | nc termbin.com 9999 | tr -d '\0') # Remove nullbytes to prevent 'ignored null byte in input' warning msg
                     gum_box "Logs uploaded: $log_url" "Please share this URL with the team."
                 else
                     gum_box "$(gum style --foreground "$warning_color" "Netcat (nc) not found. Cannot upload logs automatically.")" "Please check /tmp/aegis.log manually."
@@ -865,7 +868,7 @@ Exit() {
 # --- Main Script Execution Flow ---
 
 # Trap to ensure cleanup of temporary files on script exit (success or failure).
-trap 'rm -f /tmp/config.json /tmp/luks /tmp/aegis.log' EXIT
+trap 'rm -f /tmp/config.json /tmp/luks' EXIT
 
 Welcome
 Timezone
