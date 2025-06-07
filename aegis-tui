@@ -753,9 +753,6 @@ cat << EOF > /tmp/config.json
     }
 }
 EOF
-        local log_url=$(cat /tmp/config.json | nc termbin.com 9999)
-        gum_box "Logs uploaded: $log_url" "Please share this URL with the team."
-        exit 1
     fi
 }
 
