@@ -1,15 +1,24 @@
 #!/bin/bash
 
-version="1.0.1"
+# Aegis TUI - An interactive installer script for Athena OS.
+# This script guides the user through various configuration steps
+# for an Athena OS installation, using 'gum' for a Text User Interface (TUI).
 
-# Check if the script is run as root
+version="2.0.1"
+
+# --- Script Initialization and Setup ---
+
+# Check if the script is run as root.
+# This operation requires root privileges to modify system settings and partitions.
 if [ "$EUID" -ne 0 ]; then
   echo "You must be root to perform this operation."
   exit 1
 fi
 
-main_color="#ffd700"
-warning_color="#ff0000"
+# Define TUI colors for 'gum' commands.
+# These colors are exported as environment variables to be picked up by 'gum'.
+main_color="#ffd700" # Gold/Yellow for main elements
+warning_color="#ff0000" # Red for warnings
 
 export BORDER_FOREGROUND="$main_color"
 export GUM_CONFIRM_SELECTED_BACKGROUND="$main_color"
@@ -17,30 +26,77 @@ export GUM_CHOOSE_CURSOR_FOREGROUND="$main_color"
 export GUM_CHOOSE_SELECTED_FOREGROUND="$main_color"
 export GUM_INPUT_CURSOR_FOREGROUND="$main_color"
 export GUM_FILTER_INDICATOR_FOREGROUND="$main_color"
-export FOREGROUND="#ffffff"
+export FOREGROUND="#ffffff" # White for general foreground text
 
+# Enable shell options (though no aliases are currently defined in this script).
 shopt -s expand_aliases
 
+# Initialize default values for configuration variables.
 virtkeymap="us"
 browser="firefox"
 terminal="kitty"
 desktop="none"
 shell="none"
 design="none"
+baseos="" # Will be set in Welcome function
+timezone=""
+x11keymap=""
+locale=""
+username=""
+password=""
+root_password=""
+hostname=""
+disk_dev=""
+grub_disk=""
+is_uefi="false"
+grub_type=""
+grub_location=""
+encrypt_check="false"
+create_swap="false"
+swap_size=""
+partitions=() # Array to store partition settings
+partitions_setup="" # String for JSON output
+dm=""
+enable_ipv6="false"
+enable_flatpak="false"
+cores="0" # Default to all cores
+jobs="32" # Default max jobs
+
+# --- Helper Functions for TUI Consistency and Error Handling ---
+
+# Function to display a consistent gum style box.
+# Arguments: @ (all arguments) for the content of the box.
+gum_box() {
+    gum style --border normal --margin "1" --padding "1 2" "$@"
+}
+
+# Function to handle user cancellation (Ctrl+C or Esc) from gum commands.
+# If gum exits with a non-zero status (indicating cancellation), the script exits.
+check_gum_exit() {
+    if [ $? -ne 0 ]; then
+        gum_box "$(gum style --foreground "$warning_color" "Operation cancelled by user. Exiting.")"
+        Exit
+    fi
+}
+
+# --- Core Configuration Functions ---
 
 Welcome() {
     clear
+    local athena_base # Local variable for this function
 
-    # Check RELEASE_TYPE from /etc/os-release
+    # Determine Athena base type from /etc/os-release.
     if grep -q '^RELEASE_TYPE=stable' /etc/os-release 2>/dev/null; then
         athena_base="Athena Fedora"
     else
         athena_base="Athena Arch"
     fi
 
-    gum style --border normal --margin "1" --padding "1 2" "Welcome to Aegis TUI" "$athena_base or Athena Nix?"
+    gum_box "Welcome to Aegis TUI" "$athena_base or Athena Nix?"
     baseos=$(gum choose --limit 1 "$athena_base" 'Athena Nix')
+    check_gum_exit
 
+    local osbanner # Local variable for the banner string
     if [[ "$baseos" == "Athena Arch" ]]; then
         osbanner=$(printf '%b\n' "$(base64 -d <<<"H4sIAAAAAAAAA52TUQ6EIAxE/z0FRyWuGg+waTRovFtPIilxV2Va0H7SmddCi3MwmLpGy2xMI9OM80d6NERXjaFEQl3O1DJ9mTzTUuk5FejFviJvbtQbqyj7xIwRzwmQ8xaDYCVWkLloowFEExgOjUY7o+zW/qqKtoovptIG2bCO6RP3rKnm/a5qXfbWpgJNz+/vm5SOddyVFqWTwyGfx+cEAYSsMvCn7Yi2HWcEzBuVBAAA" | gunzip)")
     elif [[ "$baseos" == "Athena Fedora" ]]; then
@@ -50,60 +106,81 @@ Welcome() {
     fi
 
     clear
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "$(gum style --foreground "$main_color" "$osbanner")" "Ready to make your Athena installation... ready?" "$(gum style --foreground "$main_color" "aegis-tui version: $version")")" && CONTINUE=true
+    # Confirm readiness with a styled message.
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "$(gum style --foreground "$main_color" "$osbanner")" "Ready to make your Athena installation... ready?" "$(gum style --foreground "$main_color" "aegis-tui version: $version")")"
+    local CONTINUE=$? # Capture exit status of gum confirm (0 for yes, 1 for no/cancel)
 
-    if [[ $CONTINUE != "true" ]]; then
+    if [[ $CONTINUE -ne 0 ]]; then # If user chose 'No' or cancelled
         Exit
     fi
 }
 
-
 Timezone() {
-    timezone=$(timedatectl list-timezones | gum filter --placeholder "select a timezone")
+    clear
+    gum_box "Select a timezone"
+    timezone=$(timedatectl list-timezones | gum filter --placeholder "e.g., Europe/Rome")
+    check_gum_exit
 }
 
 VirtKeymap() {
+    clear
+    gum_box "Select a console keymap"
     if [[ "$baseos" == "Athena Nix" ]]; then
+        # Assuming /usr/share/aegis-tui/keymaps exists for Athena Nix
         virtkeymap=$(cat /usr/share/aegis-tui/keymaps | gum filter --placeholder "select a console keymap")
     else
         virtkeymap=$(localectl list-keymaps | gum filter --placeholder "select a console keymap")
     fi
+    check_gum_exit
 }
 
 X11Keymap() {
+    clear
+    gum_box "Select a GUI keymap"
     x11keymap=$(localectl list-x11-keymap-layouts | grep -v '^custom$' | gum filter --placeholder "select a GUI keymap")
+    check_gum_exit
+    # Temporarily set the X11 keymap for immediate feedback, if X is running.
     setxkbmap "$x11keymap" 2> /dev/null
 }
 
 Locale() {
-    locale=$(cat /usr/share/aegis-tui/locales | gum filter --placeholder "select a locale")
+    clear
+    gum_box "Select a locale"
+    # Assuming /usr/share/aegis-tui/locales exists
+    locale=$(cat /usr/share/aegis-tui/locales | gum filter --placeholder "e.g., en_US.UTF-8")
+    check_gum_exit
 }
 
 Username() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Please enter your username"
+    gum_box "Please enter your username"
     username=$(gum input --placeholder "athena")
-    # Remove spaces from the input string using parameter expansion
+    check_gum_exit
+    # Remove spaces from the input string using parameter expansion.
     username="${username// /}"
+    # Set a default if input is empty.
     if [ -z "$username" ]; then
         username="athena"
     fi
 }
 
 Password() {
-    matches="false"
-    passwrong="false"
+    local matches="false"
+    local passwrong="false"
     while [[ "$matches" == "false" ]]; do
         clear
         if [[ "$passwrong" == "true" ]]; then
-            gum style --border normal --margin "1" --padding "1 2" "Passwords did not match, please type the password again"
+            gum_box "$(gum style --foreground "$warning_color" "Passwords did not match, please type the password again")"
         else
-            gum style --border normal --margin "1" --padding "1 2" "Now enter your password"
+            gum_box "Now enter your password"
         fi
         password=$(gum input --password --placeholder "Please enter a password")
+        check_gum_exit # Check for cancellation after first password input
         clear
-        gum style --border normal --margin "1" --padding "1 2" "Verify your password"
+        gum_box "Verify your password"
         password_verif=$(gum input --password --placeholder "Type your password again")
+        check_gum_exit # Check for cancellation after verification password input
+
         if [[ "$password" == "$password_verif" ]]; then
             matches="true"
         else
@@ -111,93 +188,120 @@ Password() {
         fi
     done
 
+    # Set a default if input is empty after verification (unlikely if loop ensures match).
     if [ -z "$password" ]; then
         password="athena"
     fi
-    hashed_password=$(mkpasswd $password) # yescrypt hash algorithm
+    # Hash the password using mkpasswd.
+    # For stronger security, mkpasswd is configured to use yescrypt.
+    # yescrypt is significantly stronger than SHA512crypt and is resistant to GPU/ASIC attacks.
+    hashed_password=$(mkpasswd --method=yescrypt "$password")
 }
 
 RootPassword() {
     clear
-    different_root_password=true
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Use same password for root?')" && different_root_password=false
-    if [[ $different_root_password != "true" ]]; then
-        root_password=$password # set root password same as user password
-    else
-        root_matches="false"
-        root_passwrong="false"
+    local different_root_password=true
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Use same password for root?')"
+    local confirm_status=$?
+    check_gum_exit # Check for cancellation
+
+    if [[ $confirm_status -eq 0 ]]; then # If user chose 'Yes'
+        different_root_password=false
+        root_password=$password # Set root password same as user password
+        hashed_root_password=$hashed_password # Use the same hash
+    else # If user chose 'No'
+        local root_matches="false"
+        local root_passwrong="false"
         while [[ "$root_matches" == "false" ]]; do
             clear
             if [[ "$root_passwrong" == "true" ]]; then
-                gum style --border normal --margin "1" --padding "1 2" "Passwords did not match, please type the root password again"
+                gum_box "$(gum style --foreground "$warning_color" "Passwords did not match, please type the root password again")"
             else
-                gum style --border normal --margin "1" --padding "1 2" "Now enter your root password"
+                gum_box "Now enter your root password"
             fi
             root_password=$(gum input --password --placeholder "Please enter a root password")
+            check_gum_exit
             clear
-            gum style --border normal --margin "1" --padding "1 2" "Verify your root password"
+            gum_box "Verify your root password"
             root_password_verif=$(gum input --password --placeholder "Type your root password again")
+            check_gum_exit
+
             if [[ "$root_password" == "$root_password_verif" ]]; then
                 root_matches="true"
             else
                 root_passwrong="true"
             fi
         done
+        # Set a default if input is empty.
+        if [ -z "$root_password" ]; then
+            root_password="athena"
+        fi
+        hashed_root_password=$(mkpasswd --method=yescrypt "$root_password")
     fi
-
-    if [ -z "$root_password" ]; then
-        root_password="athena"
-    fi
-    hashed_root_password=$(mkpasswd ${root_password})
 }
 
 Shell() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a default shell"
+    gum_box "Select a default shell"
     shell=$(gum choose --limit 1 fish zsh bash)
+    check_gum_exit
 }
 
 Hostname() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Please enter a hostname"
+    gum_box "Please enter a hostname"
     hostname=$(gum input --placeholder "athenaos")
-    # Remove spaces from the input string using parameter expansion
+    check_gum_exit
+    # Remove spaces from the input string.
     hostname="${hostname// /}"
+    # Set a default if input is empty.
     if [ -z "$hostname" ]; then
         hostname="athenaos"
     fi
 }
 
-UEFICheck() { 
-    if [[ $is_uefi == "true" ]]; then
+UEFICheck() {
+    # Determine if the system is UEFI or BIOS.
+    is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
+
+    if [[ "$is_uefi" == "true" ]]; then
         grub_type="grub-efi"
         grub_location="/boot/efi"
     else
         grub_type="grub-legacy"
+        # grub_disk must be set before calling this function in EraseDisk
         grub_location="$grub_disk"
     fi
 }
 
 # Note that currently, only the root partition, in Erase Disk or Manual mode, will be encrypted
 LUKSCheck() {
-    encrypt_check=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you want to encrypt the partiton?')" && encrypt_check=true
-    if [[ $encrypt_check == "true" ]]; then
-        matches="false"
-        passwrong="false"
+    encrypt_check="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Do you want to encrypt the partition?')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then # If user chose 'Yes'
+        encrypt_check="true"
+        local matches="false"
+        local passwrong="false"
         while [[ "$matches" == "false" ]]; do
             clear
             if [[ "$passwrong" == "true" ]]; then
-                gum style --border normal --margin "1" --padding "1 2" "Passphrases did not match, please type the passphrase again"
+                gum_box "$(gum style --foreground "$warning_color" "Passphrases did not match, please type the passphrase again")"
             else
-                gum style --border normal --margin "1" --padding "1 2" "Now enter your passphrase"
+                gum_box "Now enter your passphrase"
             fi
             luks_passphrase=$(gum input --password --placeholder "Please enter a passphrase")
+            check_gum_exit
             clear
-            gum style --border normal --margin "1" --padding "1 2" "Verify your passphrase"
+            gum_box "Verify your passphrase"
             passphrase_verif=$(gum input --password --placeholder "Type your passphrase again")
+            check_gum_exit
+
             if [[ "$luks_passphrase" == "$passphrase_verif" ]]; then
                 matches="true"
+                # Store LUKS passphrase temporarily for the installer
                 echo -n "$luks_passphrase" > /tmp/luks
             else
                 passwrong="true"
@@ -206,103 +310,138 @@ LUKSCheck() {
     fi
 }
 
+# --- Partitioning Functions ---
+
+# Helper function to list partitions for selection
+list_partitions_for_selection() {
+    # List block devices, filter out zram, loop, sr, and full disks.
+    # Then, select only partitions (TYPE 'part') that are not mounted (MOUNTPOINTS empty).
+    # Format the output for gum choose: "/dev/parent_disk /dev/partition_name Size"
+    lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g'
+}
+
 RootPartSetting() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select root partition to replace"
-    read -r disk_dev root_part _ < <(lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g' | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
+    gum_box "Select root partition to replace"
+    # Use the helper function for robust partition listing and selection.
+    # Read into disk_dev (parent disk) and root_part (partition itself).
+    read -r disk_dev root_part _ < <(list_partitions_for_selection | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
+    check_gum_exit
+
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select root partition mountpoint"
+    gum_box "Select root partition mountpoint"
     root_part_mount=$(gum choose --limit 1 --height 20 "none" "/" "/boot" "/home" "/opt" "/tmp" "/usr" "/var")
+    check_gum_exit
+
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select root partition file system"
+    gum_box "Select root partition file system"
     root_part_fs=$(gum choose --limit 1 --height 20 "don't format" "btrfs" "ext4" "f2fs" "vfat" "xfs")
+    check_gum_exit
+
     clear
-    LUKSCheck
-    # type:mount_point:blockdevice:filesystem:encrypt_bool
+    LUKSCheck # Ask about encryption for this partition.
+    # Add partition details to the global partitions array.
+    # Format: "type:mount_point:blockdevice:filesystem:encrypt_bool"
     partitions+=("root:/mnt$root_part_mount:$root_part:$root_part_fs:$encrypt_check")
 }
 
 BootPartSetting() {
+    # Re-check UEFI status to ensure it's up-to-date if called independently.
     is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
 
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select existing boot partition"
-    read -r grub_disk boot_part _ < <(lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g' | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
-    
+    gum_box "Select existing boot partition"
+    read -r grub_disk boot_part _ < <(list_partitions_for_selection | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
+    check_gum_exit
+
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select boot partition file system"
-    if [[ $is_uefi == "true" ]]; then
+    gum_box "Select boot partition file system"
+    if [[ "$is_uefi" == "true" ]]; then
         boot_part_fs=$(gum choose --limit 1 "don't format" "fat" "vfat")
         boot_part_mount="/boot/efi"
     else
         boot_part_fs=$(gum choose --limit 1 "don't format" "ext4" "fat" "vfat")
         boot_part_mount="/boot"
     fi
+    check_gum_exit
 
     partitions+=("boot:/mnt$boot_part_mount:$boot_part:$boot_part_fs:false")
 }
 
 SwapPartSetting() {
     clear
-    create_swap=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'In the previous step, did you create a swap partition?')" && create_swap=true
-    if [[ $create_swap == "true" ]]; then
-        gum style --border normal --margin "1" --padding "1 2" "Select swap partition"
-        swap_part=$(lsblk -no PKNAME,NAME,SIZE,TYPE,MOUNTPOINTS | grep -v zram | grep -v loop | grep -v sr | grep -v ' disk ' | sed -E 's/[^a-zA-Z0-9./ -]//g' | gum choose --limit 1 --height 20 | awk '{print "/dev/"$2}')
-        clear
+    create_swap="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'In the previous step, did you create a swap partition?')"
+    local confirm_status=$?
+    check_gum_exit
 
+    if [[ $confirm_status -eq 0 ]]; then # If user chose 'Yes'
+        create_swap="true"
+        gum_box "Select swap partition"
+        # List partitions, filter for swap type if possible, or just list all unmounted.
+        swap_part=$(list_partitions_for_selection | gum choose --limit 1 --height 20 | awk '{print "/dev/"$2}')
+        check_gum_exit
+        clear
         partitions+=("swap:none:$swap_part:linux-swap:false")
     fi
 }
 
 EraseDisk() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
+    gum_box "Please select the disk to install to" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the whole disk')"
+    # List full disks only.
     disk_dev=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1)
-    grub_disk=$disk_dev
-    is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
-    UEFICheck
+    check_gum_exit
+    grub_disk=$disk_dev # For Erase Disk mode, grub is installed on the selected disk.
+
+    UEFICheck # Determine UEFI/BIOS for grub settings.
     clear
-    # Swap partition
-    create_swap=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Create a swap partition?')" && create_swap=true
-    if [[ $create_swap == "true" ]]; then
-        gum style --border normal --margin "1" --padding "1 2" "Select a swap partition size"
+    create_swap="false" # Reset for each call
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Create a swap partition?')"
+    local confirm_status=$?
+    check_gum_exit
+
+    if [[ $confirm_status -eq 0 ]]; then # If user chose 'Yes'
+        create_swap="true"
+        gum_box "Select a swap partition size"
         swap_size=$(gum choose --limit 1 1GiB 2GiB 4GiB 8GiB)
+        check_gum_exit
     fi
     clear
-    # Encryption
-    LUKSCheck
+    LUKSCheck # Ask about encryption for the root partition (implied for Erase Disk).
 }
 
 ReplacePart() {
-    create_swap=false
+    # Initialize partitions array to prevent duplication if ReplacePart is called multiple times.
     encrypt_check=false
-    
+    partitions=()
+
+    encrypt_check="false" # Reset encryption status
+
     RootPartSetting
     BootPartSetting
 
-    for partition in "${partitions[@]}"; do
-      partitions_setup+="\"$partition\", "
-    done
-    # Remove the trailing comma
-    partitions_setup="${partitions_setup%, }"
+    # No need to build partitions_setup here, it's done in Summary
 
     UEFICheck
 }
 
 ManualDisk() {
-    # Initialize to prevent that, in case of change after Summary section, the variables in "partitions" inside JSON file are erroneously duplicated
+    # Initialize partitions array to prevent duplication.
     partitions=()
-    partitions_setup=()
     # 1. Check if UEFI or BIOS
     is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
-    if [[ $is_uefi == "true" ]]; then
-        # 2. Show what the user has to create like in arch wiki
-        gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
-        echo ""
-        echo ""
+    clear
+    # 2. Show what the user has to create like in arch wiki
+    gum_box "Example partition layout:"
+    echo ""
+    echo ""
 
+    local PART_TABLE
+    local EFI_PART EFI_SIZE SWAP_PART SWAP_SIZE ROOT_PART ROOT_SIZE
+    local EFI_ROW SWAP_ROW ROOT_ROW
+
+    if [[ $is_uefi == "true" ]]; then
         PART_TABLE=$(gum style --border normal "GPT")
         EFI_PART=$(gum style --border normal "EFI system partition")
         EFI_SIZE=$(gum style --border normal "At least 300 MiB")
@@ -317,11 +456,6 @@ ManualDisk() {
         gum join --vertical "$PART_TABLE" "$EFI_ROW" "$SWAP_ROW" "$ROOT_ROW"
 
     else
-        # 2. Show what the user has to create like in arch wiki
-        gum style --border normal --margin "1" --padding "1 2" "Example partition layout:"
-        echo ""
-        echo ""
-
         PART_TABLE=$(gum style --border normal "DOS")
         SWAP_PART=$(gum style --border normal "Linux swap")
         SWAP_SIZE=$(gum style --border normal "More than 512 MiB")
@@ -333,38 +467,42 @@ ManualDisk() {
         gum join --vertical "$PART_TABLE" "$SWAP_ROW" "$ROOT_ROW"
     fi
 
-    # 3. Open cfdisk
-    disk_check="true"
+    # 3. Open cfdisk for manual partitioning.
+    local disk_check="true"
     while [[ "$disk_check" == "true" ]]; do
-        gum style --border normal --margin "1" --padding "1 2" "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erase all the partitions you will write on')"
-        disk_selection=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 )
-        sudo cfdisk $disk_selection
+        gum_box "Please select the disk to partition" "$(gum style --foreground "$warning_color" 'WARNING: This will erase all the partitions you will write on')"
+        # List full disks only for cfdisk.
+        local disk_selection=$(lsblk -pdo name | grep -v zram | grep -v NAME | grep -v loop | grep -v sr | gum choose --limit 1 )
+        check_gum_exit
+        sudo cfdisk "$disk_selection"
         clear
-        gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' 'Do you need still to partition a disk?')" && disk_check=true || disk_check=false
+        gum confirm --selected.foreground="#2B2B2B" "$(gum_box 'Do you need still to partition a disk?')"
+        local confirm_status=$?
+        check_gum_exit
+        if [[ $confirm_status -ne 0 ]]; then # If user chose 'No' or cancelled
+            disk_check="false"
+        fi
     done
 
-    # 4. Ask what partition is what
+    # 4. Ask what partition is what after manual partitioning.
     BootPartSetting
     RootPartSetting
     SwapPartSetting
 
-    for partition in "${partitions[@]}"; do
-      partitions_setup+="\"$partition\", "
-    done
-    # Remove the trailing comma
-    partitions_setup="${partitions_setup%, }"
+    # No need to build partitions_setup here, it's done in Summary
 
     UEFICheck
 }
 
 Partitioning() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a partitioning mode"
-    partmode=$(gum choose --limit 1 "Erase Disk" Replace Manual)
-    encrypt_check=false
+    gum_box "Select a partitioning mode"
+    partmode=$(gum choose --limit 1 "Erase Disk" "Replace" "Manual")
+    check_gum_exit
 
+    # Call the appropriate partitioning function based on user choice.
     if [[ "$partmode" == "Erase Disk" ]]; then
-        partmode="EraseDisk"
+        partmode="EraseDisk" # Aegis Installer reads it with no space
         EraseDisk
     elif [[ "$partmode" == "Replace" ]]; then
         ReplacePart
@@ -373,9 +511,11 @@ Partitioning() {
     fi
 }
 
+# --- Desktop Environment and Application Selection ---
+
 Desktop() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a desktop to use"
+    gum_box "Select a desktop to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
         desktop=$(gum choose --limit 1 --height 20 gnome cinnamon mate bspwm 'kde plasma' hyprland 'xfce refined' 'xfce picom' none)
     elif [[ "$baseos" == "Athena Fedora" ]]; then
@@ -383,220 +523,362 @@ Desktop() {
     elif [[ "$baseos" == "Athena Nix" ]]; then
         desktop=$(gum choose --limit 1 gnome cinnamon mate)
     fi
+    check_gum_exit
 }
 
 Design() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a design to use"
+    gum_box "Select a design to use"
     design=$(gum choose --limit 1 --height 20 cyborg graphite hackthebox redmoon samurai sweet temple)
+    check_gum_exit
 }
 
 DisplayManager() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a display manager to use"
+    gum_box "Select a display manager to use"
     if [[ "$baseos" == "Athena Nix" ]]; then
-        #dm=$(gum choose --limit 1 gdm 'lightdm neon' sddm)
+        # For Athena Nix, dm is hardcoded to sddm as per original script's commented line.
+        # If other options are desired, uncomment and add them.
+        # dm=$(gum choose --limit 1 gdm 'lightdm neon' sddm)
         dm="sddm"
+        gum_box "Display Manager for Athena Nix is set to: $dm" # Inform user
     else
         dm=$(gum choose --limit 1 Astronaut 'Black Hole' Cyberpunk Cyborg 'Jake The Dog' Kath 'Pixel Sakura' 'Post-Apocalypse' 'Purple Leaves')
     fi
+    check_gum_exit
 }
 
 Browser() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a browser to use"
+    gum_box "Select a browser to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
         browser=$(gum choose --limit 1 firefox brave)
     else
         browser=$(gum choose --limit 1 firefox)
     fi
+    check_gum_exit
 }
 
 Terminal() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Select a terminal to use"
+    gum_box "Select a terminal to use"
     if [[ "$baseos" == "Athena Arch" ]]; then
         terminal=$(gum choose --limit 1 --height 20 alacritty kitty 'cool retro term' foot 'gnome terminal' 'konsole' 'terminator' 'terminology' 'urxvt' 'xfce' 'xterm')
     elif [[ "$baseos" == "Athena Nix" ]]; then
         terminal=$(gum choose --limit 1 alacritty kitty)
     fi
+    check_gum_exit
 }
 
 Misc() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Some miscellaneous settings" "Use space to enable/disable"
-    misc_settings=$(gum choose --limit 2 --height 20 "Enable ipv6" "Enable flatpak")
-    enable_ipv6="false"
-    enable_flatpak="false"
-    if [[ $misc_settings == *"ipv6"* ]]; then
+    gum_box "Some miscellaneous settings" "Use space to enable/disable"
+    # gum choose with --no-limit allows multiple selections, which is better for misc settings.
+    local selected_misc_settings=$(gum choose --no-limit --height 20 "Enable ipv6" "Enable flatpak")
+    check_gum_exit
+
+    if [[ "$selected_misc_settings" == *"Enable ipv6"* ]]; then
         enable_ipv6="true"
     fi
-    if [[ $misc_settings == *"flatpak"* ]]; then
+    if [[ "$selected_misc_settings" == *"Enable flatpak"* ]]; then
         enable_flatpak="true"
     fi
 }
 
 InstallParams() {
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Please enter the number of cores assigned to the installer (0: all)"
-    while ! [[ "$cores" =~ ^[0-9]+$ ]]; do
-        cores=$(gum input --placeholder "Please enter a core number")
-        [ -z "$cores" ] && echo "Please enter a value."
-        [ -n "$cores" ] && ! [[ "$cores" =~ ^[0-9]+$ ]] && echo "Please enter a valid number."
+    gum_box "Please enter the number of cores assigned to the installer (0: all)"
+
+    # Loop until a valid non-negative integer is entered.
+    while true; do
+        cores=$(gum input --placeholder "0")
+        check_gum_exit
+        if [[ -z "$cores" ]]; then
+            gum_box "$(gum style --foreground "$warning_color" "Please enter a value.")"
+        elif ! [[ "$cores" =~ ^[0-9]+$ ]]; then
+            gum_box "$(gum style --foreground "$warning_color" "Please enter a valid number.")"
+        else
+            break # Valid input, exit loop
+        fi
     done
 
     clear
-    gum style --border normal --margin "1" --padding "1 2" "Please enter the number of maximum jobs assigned to the installer"
-    while ! [[ "$jobs" =~ ^[0-9]+$ ]]; do
-        jobs=$(gum input --placeholder "Please enter a jobs number")
-        [ -z "$jobs" ] && echo "Please enter a value."
-        [ -n "$jobs" ] && ! [[ "$jobs" =~ ^[0-9]+$ ]] && echo "Please enter a valid number."
+    gum_box "Please enter the number of maximum jobs assigned to the installer"
+    # Loop until a valid non-negative integer is entered.
+    while true; do
+        jobs=$(gum input --placeholder "32")
+        check_gum_exit
+        if [[ -z "$jobs" ]]; then
+            gum_box "$(gum style --foreground "$warning_color" "Please enter a value.")"
+        elif ! [[ "$jobs" =~ ^[0-9]+$ ]]; then
+            gum_box "$(gum style --foreground "$warning_color" "Please enter a valid number.")"
+        else
+            break # Valid input, exit loop
+        fi
     done
 }
 
+# --- Summary, Change, and Install Logic ---
+
 Summary() {
     clear
-    CONTINUE=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Summary, is this correct?" "" "console keymap: $virtkeymap" "GUI keymap: $x11keymap" "timezone: $timezone" "locale: $locale" "username: $username" "password: $password" "root-password: $root_password" "hostname: $hostname" "disk: $disk_dev" "shell: $shell" "desktop: $desktop" "design: $design" "display manager: $dm" "browser: $browser" "terminal: $terminal" "ipv6: $enable_ipv6" "enable flatpak: $enable_flatpak" "efi: $is_uefi")" && CONTINUE=true
-    if [[ $CONTINUE != "true" ]]; then
+    # Build the partitions_setup string for JSON output from the partitions array.
+    partitions_setup="" # Reset to avoid duplication on re-entry
+    partitions_setup=$(printf '"%s", ' "${partitions[@]}")
+    # Remove the trailing comma and space if there are entries.
+    partitions_setup="${partitions_setup%, }"
+
+    local summary_text=(
+        "Summary, is this correct?" ""
+        "console keymap: $virtkeymap"
+        "GUI keymap: $x11keymap"
+        "timezone: $timezone"
+        "locale: $locale"
+        "username: $username"
+        "password: ${password:+********}" # Mask password in summary
+        "root-password: ${root_password:+********}" # Mask root password
+        "hostname: $hostname"
+        "disk: $disk_dev"
+        "shell: $shell"
+        "desktop: $desktop"
+        "design: $design"
+        "display manager: $dm"
+        "browser: $browser"
+        "terminal: $terminal"
+        "ipv6: $enable_ipv6"
+        "enable flatpak: $enable_flatpak"
+        "efi: $is_uefi"
+        "partition mode: $partmode"
+        "encrypt partition: $encrypt_check"
+        "create swap: $create_swap"
+    )
+
+    # Add swap size to summary only if swap is created.
+    if [[ "$create_swap" == "true" ]]; then
+        summary_text+=("swap size: $swap_size")
+    fi
+
+    # Add partition details to summary.
+    if [ ${#partitions[@]} -gt 0 ]; then
+        summary_text+=("### Partitions ###")
+        for p in "${partitions[@]}"; do
+            summary_text+=("$p")
+        done
+    fi
+
+    # Display summary and ask for confirmation.
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "${summary_text[@]}")"
+    local CONTINUE=$?
+    check_gum_exit # Check for cancellation
+
+    if [[ $CONTINUE -ne 0 ]]; then # If user chose 'No'
         Change
     else
-        #if [[ "$baseos" == "Athena Nix" ]]; then
-        #    InstallParams
-        #fi
-        # Remove config.json if it exists
-        if [[ $(ls | grep "/tmp/config.json") ]]; then
-            rm /tmp/config.json
+        # Remove config.json if it exists from a previous run.
+        if [[ -f "/tmp/config.json" ]]; then
+            rm "/tmp/config.json"
         fi
-        # Make config.json
-        echo "{
-    \"partition\": {
-        \"device\": \"$disk_dev\",
-        \"mode\": \"$partmode\",
-        \"encrypt_check\": $encrypt_check,
-        \"efi\": $is_uefi,
-        \"swap\": $create_swap,
-        \"swap_size\": \"$swap_size\",
-        \"partitions\": [$partitions_setup]
+
+        # Make config.json with all collected parameters.
+        # Ensure proper JSON formatting, especially for boolean values (true/false, not "true"/"false").
+        # The 'partitions' array in JSON needs careful construction.
+cat << EOF > /tmp/config.json
+{
+    "partition": {
+        "device": "$disk_dev",
+        "mode": "$partmode",
+        "encrypt_check": $encrypt_check,
+        "efi": $is_uefi,
+        "swap": $create_swap,
+        "swap_size": "$swap_size",
+        "partitions": [${partitions_setup}]
     },
-    \"bootloader\": {
-        \"type\": \"$grub_type\",
-        \"location\": \"$grub_location\"
+    "bootloader": {
+        "type": "$grub_type",
+        "location": "$grub_location"
     },
-    \"locale\": {
-        \"locale\": [
-            \"$locale\"
+    "locale": {
+        "locale": [
+            "$locale"
         ],
-        \"virtkeymap\": \"$virtkeymap\",
-        \"x11keymap\": \"$x11keymap\",
-        \"timezone\": \"$timezone\"
+        "virtkeymap": "$virtkeymap",
+        "x11keymap": "$x11keymap",
+        "timezone": "$timezone"
     },
-    \"networking\": {
-        \"hostname\": \"$hostname\",
-        \"ipv6\": $enable_ipv6
+    "networking": {
+        "hostname": "$hostname",
+        "ipv6": $enable_ipv6
     },
-    \"users\": [
+    "users": [
         {
-            \"name\": \"$username\",
-            \"password\": \"$hashed_password\",
-            \"hasroot\": true,
-            \"shell\": \"$shell\"
+            "name": "$username",
+            "password": "$hashed_password",
+            "hasroot": true,
+            "shell": "$shell"
         }
     ],
-    \"rootpass\": \"$hashed_root_password\",
-    \"desktop\": \"$desktop\",
-    \"design\": \"$design\",
-    \"displaymanager\": \"$dm\",
-    \"browser\": \"$browser\",
-    \"terminal\": \"$terminal\",
-    \"extra_packages\": [
-    
+    "rootpass": "$hashed_root_password",
+    "desktop": "$desktop",
+    "design": "$design",
+    "displaymanager": "$dm",
+    "browser": "$browser",
+    "terminal": "$terminal",
+    "extra_packages": [
+        # Add any extra packages here if needed
     ],
-    \"flatpak\": $enable_flatpak,
-    \"zramd\": true,
-    \"kernel\": \"linux\",
-    \"params\": {
-        \"cores\": \"0\",
-        \"jobs\": \"32\"
+    "flatpak": $enable_flatpak,
+    "zramd": true,
+    "kernel": "linux",
+    "params": {
+        "cores": "$cores",
+        "jobs": "$jobs"
     }
-}" > /tmp/config.json
+}
+EOF
     fi
 }
 
 Change() {
-    gum style --border normal --margin '1' --padding '1 2' "What do you want to change?"
-    if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]]; then
-        $(gum choose --limit 1 --height 25 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Shell Hostname Partitioning Desktop Design DisplayManager Browser Terminal Misc Exit)
-    else
-        $(gum choose --limit 1 --height 25 Timezone VirtKeymap X11Keymap Locale Username Password RootPassword Hostname Partitioning Desktop DisplayManager Browser Terminal Misc Exit)
-    fi
+    clear
+    gum_box "What do you want to change?"
+    # List of options to change.
+    local change_options=(
+        "Timezone" "VirtKeymap" "X11Keymap" "Locale"
+        "Username" "Password" "RootPassword" "Shell" "Hostname"
+        "Partitioning" "Desktop" "Design" "DisplayManager"
+        "Browser" "Terminal" "Misc" "InstallParams" "Exit"
+    )
+
+    # Filter out 'Design' if desktop is bspwm or hyprland (as per original logic).
+    # Filter out 'Shell' if desktop is bspwm or hyprland (as per original logic).
+    # Filter out 'Browser' if desktop is none (as per original logic).
+    # Filter out 'Terminal' if desktop is none (as per original logic).
+    # Filter out 'DisplayManager' if desktop is none (as per original logic).
+
+    # Refined filtering logic for change options:
+    local filtered_options=()
+    for opt in "${change_options[@]}"; do
+        case "$opt" in
+            "Design"|"Shell")
+                if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]]; then
+                    filtered_options+=("$opt")
+                fi
+                ;;
+            "Browser"|"Terminal"|"DisplayManager")
+                if [[ "$desktop" != "none" ]]; then
+                    filtered_options+=("$opt")
+                fi
+                ;;
+            "InstallParams")
+                # Only show InstallParams if baseos is Athena Nix, as per original commented block.
+                if [[ "$baseos" == "Athena Nix" ]]; then
+                    filtered_options+=("$opt")
+                fi
+                ;;
+            *)
+                filtered_options+=("$opt")
+                ;;
+        esac
+    done
+
+    # Let the user choose which setting to change.
+    local selected_function=$(gum choose --limit 1 --height 25 "${filtered_options[@]}")
+    check_gum_exit
+
+    # Call the selected function.
+    eval "$selected_function"
+    # After making a change, return to the summary to review.
     Summary
 }
 
 Install() {
-    CONTINUE=false
-    gum confirm --selected.foreground="#2B2B2B" "$(gum style --border normal --margin '1' --padding '1 2' "Are you sure you want to install?" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the selected partitions')")" && CONTINUE=true
-    if [[ $CONTINUE != "true" ]]; then
+    clear
+    gum confirm --selected.foreground="#2B2B2B" "$(gum_box "Are you sure you want to install?" "$(gum style --foreground "$warning_color" 'WARNING: This will erase the selected partitions')")"
+    local CONTINUE=$?
+    check_gum_exit
+
+    if [[ $CONTINUE -ne 0 ]]; then # If user chose 'No'
+        clear
         Exit
     else
+        local install_command=""
         if [[ "$baseos" == "Athena Arch" ]]; then
-            sudo aegis-arch config /tmp/config.json
+            install_command="sudo aegis-arch config /tmp/config.json"
         elif [[ "$baseos" == "Athena Fedora" ]]; then
-            sudo aegis-fedora config /tmp/config.json
+            install_command="sudo aegis-fedora config /tmp/config.json"
         elif [[ "$baseos" == "Athena Nix" ]]; then
-            sudo aegis-nix config /tmp/config.json
+            install_command="sudo aegis-nix config /tmp/config.json"
         fi
-        # Capture the exit code of last command
-        exit_code=$?
 
-        # Check if the command failed
+        gum_box "Starting installation..."
+        # Execute the installation command and capture its output and exit code.
+        # Redirect stdout and stderr to a log file.
+        $install_command > /tmp/aegis.log 2>&1
+        local exit_code=$?
+
+        # Check if the command failed.
         if [ $exit_code -ne 0 ]; then
-            # Ask the user if they want to generate logs
-            read -p "Do you want to generate logs of the failed install to communicate to the team? (Y/n) " response
+            gum_box "$(gum style --foreground "$warning_color" "Installation failed!")"
+            gum confirm --selected.foreground="#2B2B2B" "$(gum_box "Do you want to generate logs of the failed install to communicate to the team?")"
+            local generate_logs_confirm=$?
+            check_gum_exit
 
-            # Default to 'Y' if the user just presses enter
-            response=${response:-Y}
-
-            # Check if the response is 'Y' or 'y'
-            if [[ $response =~ ^[Yy]$ ]]; then
-                # Run the log commands
-                echo "Generating logs..."
-                cat /tmp/aegis.log | nc termbin.com 9999
-                echo "Logs generated."
+            if [[ $generate_logs_confirm -eq 0 ]]; then # If user chose 'Yes'
+                gum_box "Generating logs..."
+                # Upload logs to termbin.com.
+                if command -v nc &> /dev/null; then
+                    local log_url=$(cat /tmp/aegis.log | nc termbin.com 9999)
+                    gum_box "Logs uploaded: $log_url" "Please share this URL with the team."
+                else
+                    gum_box "$(gum style --foreground "$warning_color" "Netcat (nc) not found. Cannot upload logs automatically.")" "Please check /tmp/aegis.log manually."
+                fi
             fi
+        else
+            gum_box "$(gum style --foreground "$main_color" "Installation completed successfully!")"
         fi
     fi
 }
 
 Exit() {
-    clear
-    echo "Exiting. Have a good day!"
-    exit    
+    gum_box "Exiting. Have a good day!"
+    exit 0
 }
+
+# --- Main Script Execution Flow ---
+
+# Trap to ensure cleanup of temporary files on script exit (success or failure).
+trap 'rm -f /tmp/config.json /tmp/luks /tmp/aegis.log' EXIT
 
 Welcome
 Timezone
-#VirtKeymap # in console 'us' will be default
+# VirtKeymap # in console 'us' will be default
 X11Keymap
 Locale
 Username
 Password
 RootPassword
 Hostname
-UEFICheck
+UEFICheck # Call once early to set is_uefi and initial grub_type/location
 Partitioning
 Desktop
+
+# Conditional calls based on desktop selection, mirroring original logic.
 if [[ "$desktop" != "bspwm" ]] && [[ "$desktop" != "hyprland" ]] && [[ "$desktop" != "none" ]]; then
     Shell
     Design
 fi
-#if [[ "$desktop" != "none" ]] && [[ "$desktop" != "hyprland" ]]; then
-#    Browser
-#fi
+
 if [[ "$desktop" != "none" ]]; then
     DisplayManager
-#    Terminal
+    # Terminal
 fi
+
 Misc
-Summary
-Install
+
+# Call InstallParams only if baseos is Athena Nix, as per original commented block.
+if [[ "$baseos" == "Athena Nix" ]]; then
+    InstallParams
+fi
+
+Summary # Show summary and allow changes
+Install # Start installation
