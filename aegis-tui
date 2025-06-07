@@ -831,7 +831,7 @@ Install() {
         gum_box "Starting installation..."
         # Execute the installation command and capture its output and exit code.
         # Redirect stdout and stderr to a log file.
-        $install_command > /tmp/aegis.log 2>&1
+        $install_command
         local exit_code=$?
 
         # Check if the command failed.
