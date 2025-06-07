@@ -743,7 +743,6 @@ cat << EOF > /tmp/config.json
     "browser": "$browser",
     "terminal": "$terminal",
     "extra_packages": [
-        # Add any extra packages here if needed
     ],
     "flatpak": $enable_flatpak,
     "zramd": true,
