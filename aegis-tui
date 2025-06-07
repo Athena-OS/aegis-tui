@@ -322,7 +322,7 @@ list_partitions_for_selection() {
 
 RootPartSetting() {
     clear
-    gum_box "Select root partition to replace"
+    gum_box "Select root partition"
     # Use the helper function for robust partition listing and selection.
     # Read into disk_dev (parent disk) and root_part (partition itself).
     read -r disk_dev root_part _ < <(list_partitions_for_selection | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
@@ -345,12 +345,29 @@ RootPartSetting() {
     partitions+=("root:/mnt$root_part_mount:$root_part:$root_part_fs:$encrypt_check")
 }
 
+GrubPartSetting() {
+    # Re-check UEFI status to ensure it's up-to-date if called independently.
+    is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
+
+    if [[ "$is_uefi" == "true" ]] && [[ "$encrypt_check" == "true" ]]; then
+        clear
+        gum_box "Select grub boot partition"
+        read -r grub_disk grub_part _ < <(list_partitions_for_selection | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
+        check_gum_exit
+
+        clear
+        grub_part_fs="ext4"
+        grub_part_mount="/boot"
+        partitions+=("grub:/mnt$grub_part_mount:$grub_part:$grub_part_fs:false")
+    fi
+}
+
 BootPartSetting() {
     # Re-check UEFI status to ensure it's up-to-date if called independently.
     is_uefi=$([ -d /sys/firmware/efi ] && echo true || echo false)
 
     clear
-    gum_box "Select existing boot partition"
+    gum_box "Select boot partition"
     read -r grub_disk boot_part _ < <(list_partitions_for_selection | gum choose --limit 1 --height 20 | awk '{print "/dev/"$1, "/dev/"$2}')
     check_gum_exit
 
@@ -420,6 +437,7 @@ ReplacePart() {
 
     RootPartSetting
     BootPartSetting
+    GrubPartSetting
 
     # No need to build partitions_setup here, it's done in Summary
 
@@ -487,6 +505,7 @@ ManualDisk() {
     # 4. Ask what partition is what after manual partitioning.
     BootPartSetting
     RootPartSetting
+    GrubPartSetting # To be executed after LUKSCheck on RootPartSetting
     SwapPartSetting
 
     # No need to build partitions_setup here, it's done in Summary
