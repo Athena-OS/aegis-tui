@@ -426,6 +426,7 @@ EraseDisk() {
     fi
     clear
     LUKSCheck # Ask about encryption for the root partition (implied for Erase Disk).
+    partitions+=("none:none:none:none:false")
 }
 
 ReplacePart() {
