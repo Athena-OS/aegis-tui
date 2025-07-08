@@ -83,17 +83,18 @@ check_gum_exit() {
 
 Welcome() {
     clear
-    local athena_base # Local variable for this function
+    #local athena_base # Local variable for this function
 
     # Determine Athena base type from /etc/os-release.
-    if grep -q '^RELEASE_TYPE=stable' /etc/os-release 2>/dev/null; then
-        athena_base="Athena Fedora"
-    else
-        athena_base="Athena Arch"
-    fi
+    #if grep -q '^RELEASE_TYPE=stable' /etc/os-release 2>/dev/null; then
+    #    athena_base="Athena Fedora"
+    #else
+    #    athena_base="Athena Arch"
+    #fi
 
-    gum_box "Welcome to Aegis TUI" "$athena_base or Athena Nix?"
-    baseos=$(gum choose --limit 1 "$athena_base" 'Athena Nix')
+    #gum_box "Welcome to Aegis TUI" "$athena_base or Athena Nix?"
+    gum_box "Welcome to Aegis TUI" "Athena Arch, Athena Fedora or Athena Nix?"
+    baseos=$(gum choose --limit 1 'Athena Arch' 'Athena Fedora' 'Athena Nix')
     check_gum_exit
 
     local osbanner # Local variable for the banner string
