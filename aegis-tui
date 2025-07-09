@@ -59,8 +59,6 @@ partitions_setup="" # String for JSON output
 dm=""
 enable_ipv6="false"
 enable_flatpak="false"
-cores="0" # Default to all cores
-jobs="32" # Default max jobs
 
 # --- Helper Functions for TUI Consistency and Error Handling ---
 
@@ -606,39 +604,6 @@ Misc() {
     fi
 }
 
-InstallParams() {
-    clear
-    gum_box "Please enter the number of cores assigned to the installer (0: all)"
-
-    # Loop until a valid non-negative integer is entered.
-    while true; do
-        cores=$(gum input --placeholder "0")
-        check_gum_exit
-        if [[ -z "$cores" ]]; then
-            gum_box "$(gum style --foreground "$warning_color" "Please enter a value.")"
-        elif ! [[ "$cores" =~ ^[0-9]+$ ]]; then
-            gum_box "$(gum style --foreground "$warning_color" "Please enter a valid number.")"
-        else
-            break # Valid input, exit loop
-        fi
-    done
-
-    clear
-    gum_box "Please enter the number of maximum jobs assigned to the installer"
-    # Loop until a valid non-negative integer is entered.
-    while true; do
-        jobs=$(gum input --placeholder "32")
-        check_gum_exit
-        if [[ -z "$jobs" ]]; then
-            gum_box "$(gum style --foreground "$warning_color" "Please enter a value.")"
-        elif ! [[ "$jobs" =~ ^[0-9]+$ ]]; then
-            gum_box "$(gum style --foreground "$warning_color" "Please enter a valid number.")"
-        else
-            break # Valid input, exit loop
-        fi
-    done
-}
-
 # --- Summary, Change, and Install Logic ---
 
 Summary() {
@@ -748,11 +713,7 @@ cat << EOF > /tmp/config.json
     ],
     "flatpak": $enable_flatpak,
     "zramd": true,
-    "kernel": "linux",
-    "params": {
-        "cores": "$cores",
-        "jobs": "$jobs"
-    }
+    "kernel": "linux"
 }
 EOF
     fi
@@ -786,12 +747,6 @@ Change() {
                 ;;
             "Browser"|"Terminal"|"DisplayManager")
                 if [[ "$desktop" != "none" ]]; then
-                    filtered_options+=("$opt")
-                fi
-                ;;
-            "InstallParams")
-                # Only show InstallParams if baseos is Athena Nix, as per original commented block.
-                if [[ "$baseos" == "Athena Nix" ]]; then
                     filtered_options+=("$opt")
                 fi
                 ;;
@@ -894,11 +849,6 @@ if [[ "$desktop" != "none" ]]; then
 fi
 
 Misc
-
-# Call InstallParams only if baseos is Athena Nix, as per original commented block.
-if [[ "$baseos" == "Athena Nix" ]]; then
-    InstallParams
-fi
 
 Summary # Show summary and allow changes
 Install # Start installation
